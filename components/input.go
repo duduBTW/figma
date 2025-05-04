@@ -25,13 +25,13 @@ func Input(props InputProps) string {
 	rectInt32 := rect.ToInt32()
 	InputEvent(rect, props)
 	state := InputState(props)
-	borderColor := rl.White
+	borderColor := rl.Black
 
 	switch state {
 	case STATE_HOT:
-		borderColor = rl.Fade(rl.White, 0.5)
+		borderColor = rl.Fade(rl.Black, 0.5)
 	case STATE_INITIAL:
-		borderColor = rl.Fade(rl.White, 0.3)
+		borderColor = rl.Fade(rl.Black, 0.3)
 	}
 
 	isEmpty := props.Value == ""
@@ -39,9 +39,9 @@ func Input(props InputProps) string {
 	var textY int32 = rectInt32.Y + (int32(rect.Height)-fontSize)/2
 	var textX int32 = rectInt32.X + 12
 	if isEmpty && state != STATE_ACTIVE {
-		rl.DrawText(props.Placeholder, textX, textY, fontSize, rl.Fade(rl.White, 0.42))
+		rl.DrawText(props.Placeholder, textX, textY, fontSize, rl.Fade(rl.Black, 0.42))
 	} else if !isEmpty {
-		rl.DrawText(props.Value, textX, textY, fontSize, rl.White)
+		rl.DrawText(props.Value, textX, textY, fontSize, rl.Black)
 	}
 
 	DrawRectangleRoundedLinePixels(rect, ROUNDED, 1, borderColor)
@@ -95,9 +95,9 @@ func UpdateClickedCursorPosition(value string, textX, fontSize int32, props Inpu
 }
 
 func DrawCusor(position int, value string, textX, textY, fontSize int32, ui *lib.UIStruct) {
-	color := rl.Fade(rl.White, 0.6)
+	color := rl.Fade(rl.Black, 0.6)
 	if ShouldBlink(ui) {
-		color = rl.White
+		color = rl.Black
 	}
 
 	x := textX + rl.MeasureText(value[:position], fontSize) + 1
