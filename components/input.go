@@ -8,20 +8,24 @@ import (
 )
 
 type InputProps struct {
-	Id          string
-	X           float32
-	Y           float32
-	Width       float32
-	Placeholder string
-	Value       string
-	Ui          *lib.UIStruct
-	MousePoint  rl.Vector2
+	Id            string
+	X             float32
+	Y             float32
+	Width         float32
+	Placeholder   string
+	Value         string
+	Ui            *lib.UIStruct
+	MousePoint    rl.Vector2
+	LeftIndicator rune
 }
 
 const INPUT_HEIGHT float32 = 40
+const INDICATOR_FONT_SIZE int32 = 14
 
 func Input(props InputProps) string {
+	leftIndicator := string(props.LeftIndicator)
 	rect := rl.NewRectangle(props.X, props.Y, props.Width, INPUT_HEIGHT)
+
 	rectInt32 := rect.ToInt32()
 	InputEvent(rect, props)
 	state := InputState(props)
@@ -38,10 +42,21 @@ func Input(props InputProps) string {
 	var fontSize int32 = 16
 	var textY int32 = rectInt32.Y + (int32(rect.Height)-fontSize)/2
 	var textX int32 = rectInt32.X + 12
+	originalTextX := textX
+
+	if leftIndicator != "" {
+		var indicatorPadding int32 = 8
+		textX += rl.MeasureText(leftIndicator, INDICATOR_FONT_SIZE) + indicatorPadding
+	}
+
 	if isEmpty && state != STATE_ACTIVE {
 		rl.DrawText(props.Placeholder, textX, textY, fontSize, rl.Fade(rl.Black, 0.42))
 	} else if !isEmpty {
 		rl.DrawText(props.Value, textX, textY, fontSize, rl.Black)
+	}
+
+	if leftIndicator != "" {
+		rl.DrawText(leftIndicator, originalTextX, textY, fontSize, rl.Black)
 	}
 
 	DrawRectangleRoundedLinePixels(rect, ROUNDED, 1, borderColor)
