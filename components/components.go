@@ -1,6 +1,19 @@
 package components
 
-import rl "github.com/gen2brain/raylib-go/raylib"
+import (
+	"github.com/dudubtw/figma/lib"
+	rl "github.com/gen2brain/raylib-go/raylib"
+)
+
+type Components struct {
+	ui *lib.UIStruct
+
+	inputStates map[string]InteractableState
+}
+
+func NewComponents(ui *lib.UIStruct) Components {
+	return Components{ui: ui, inputStates: map[string]InteractableState{}}
+}
 
 // Helper function to find the minimum of two float32 values
 func minF(a, b float32) float32 {

@@ -58,74 +58,89 @@ const (
 	SIZE_WEIGHT   SizeType = "weight"
 )
 
-type Position struct {
-	X         float32
-	Y         float32
-	Contrains rl.Rectangle
-}
-
-func (position Position) ToVector2() rl.Vector2 {
-	return rl.NewVector2(position.X, position.Y)
-}
-func (position Position) ToRect(width, height float32) rl.Rectangle {
-	return rl.NewRectangle(position.X, position.Y, width, height)
-}
-
 type Size struct {
 	Width  float32
 	Height float32
 }
 
-type Layout struct {
+type PublicLayouyt struct {
 	Padding
+	Direction Direction
+	Gap       int
+}
 
+type Layout struct {
+	PublicLayouyt
 	index int
 
-	Direction           Direction
-	Gap                 int
 	VerticalAlignment   Alignment
 	HorizontalAlighment Alignment
 
-	Position Position
+	Position rl.Vector2
 	Size     Size
+
+	drawStack []func()
 }
 
-type Next func(rl.Rectangle)
-
-type Component func(avaliablePosition Position, next Next)
+type Component func(avaliablePosition rl.Vector2) (func(), rl.Rectangle)
 
 // FIX-ME DIRECTION NON PASSED
-func NewLayout(layout Layout, contrains rl.Rectangle) Layout {
-	layout.Position.X = contrains.X + layout.start
-	layout.Position.Y = contrains.Y + layout.top
-	layout.Position.Contrains = contrains
-	layout.Position.Contrains.Width -= (layout.Padding.start + layout.Padding.end)
-	layout.Position.Contrains.Height -= (layout.Padding.top + layout.Padding.bottom)
-
-	layout.Size.Width += (layout.Padding.start + layout.Padding.end)
-	layout.Size.Height += (layout.Padding.top + layout.Padding.bottom)
-	return layout
+func NewLayout(props PublicLayouyt, contrains rl.Vector2) *Layout {
+	return &Layout{
+		PublicLayouyt: props,
+		Position: rl.Vector2{
+			X: contrains.X + props.Padding.start,
+			Y: contrains.Y + props.Padding.top,
+		},
+		Size: Size{
+			Width:  props.Padding.start + props.Padding.end,
+			Height: props.Padding.top + props.Padding.bottom,
+		},
+	}
 }
 
-func (layout *Layout) Render(component Component) {
-	component(layout.Position, layout.Next)
+func (layout *Layout) Draw() {
+	for _, draw := range layout.drawStack {
+		draw()
+	}
 }
 
-func (layout *Layout) Next(component rl.Rectangle) {
+func (layout *Layout) Add(component Component) {
+	draw, position := component(layout.Position)
+	layout.drawStack = append(layout.drawStack, draw)
+	layout.next(position)
+}
+
+func (layout *Layout) next(component rl.Rectangle) {
 	switch layout.Direction {
 	case DIRECTION_ROW:
 		// size
-		layout.Size.Width = layout.Size.Width + component.Width + float32(layout.Gap)
+		layout.Size.Width = layout.Size.Width + component.Width
+		// gap
+		if layout.index != 0 {
+			layout.Size.Width += float32(layout.Gap)
+		}
+
 		layout.Size.Height = Max(layout.Size.Height, component.Height+(layout.Padding.top+layout.Padding.bottom))
 
 		// position
 		layout.Position.X = layout.Position.X + component.Width + float32(layout.Gap)
 	case DIRECTION_COLUMN:
 		// size
-		layout.Size.Height = layout.Size.Height + component.Height + float32(layout.Gap)
+		layout.Size.Height = layout.Size.Height + component.Height
+		// gap
+		if layout.index != 0 {
+			layout.Size.Height += float32(layout.Gap)
+		}
+
 		layout.Size.Width = Max(layout.Size.Width, component.Width+(layout.Padding.start+layout.Padding.end))
 
 		// positioN
 		layout.Position.Y = layout.Position.Y + component.Height + float32(layout.Gap)
 	}
+	layout.index++
+}
+
+func NewComponent(component Component) Component {
+	return component
 }

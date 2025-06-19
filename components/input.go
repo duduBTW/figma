@@ -7,6 +7,14 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type InputInstance struct {
+	Draw         func()
+	Value        string
+	Rect         rl.Rectangle
+	IsBluring    bool
+	HasSubmitted bool
+}
+
 type InputProps struct {
 	Id            string
 	X             float32
@@ -19,58 +27,70 @@ type InputProps struct {
 	LeftIndicator rune
 }
 
-const INPUT_HEIGHT float32 = 40
+const INPUT_HEIGHT float32 = 24
 const INDICATOR_FONT_SIZE int32 = 14
 
-func Input(props InputProps) string {
+func (c *Components) Input(props InputProps) InputInstance {
+	inputInstance := InputInstance{}
 	leftIndicator := string(props.LeftIndicator)
 	rect := rl.NewRectangle(props.X, props.Y, props.Width, INPUT_HEIGHT)
 
 	rectInt32 := rect.ToInt32()
 	InputEvent(rect, props)
-	state := InputState(props)
-	borderColor := rl.Black
 
-	switch state {
-	case STATE_HOT:
-		borderColor = rl.Fade(rl.Black, 0.5)
-	case STATE_INITIAL:
-		borderColor = rl.Fade(rl.Black, 0.3)
-	}
+	state := InputState(props)
+
+	// on blur
+	inputInstance.IsBluring = state == STATE_INITIAL && c.inputStates[props.Id] == STATE_ACTIVE
+
+	// on submit
+	inputInstance.HasSubmitted = state == STATE_ACTIVE && rl.IsKeyPressed(rl.KeyEnter)
+
+	// update global state
+	c.inputStates[props.Id] = state
 
 	isEmpty := props.Value == ""
-	var fontSize int32 = 16
-	var textY int32 = rectInt32.Y + (int32(rect.Height)-fontSize)/2
-	var textX int32 = rectInt32.X + 12
+	var fontSize int32 = 14
+	var textY int32 = rectInt32.Y + (int32(rect.Height)-fontSize)/2 + 1
+	var textX int32 = rectInt32.X + 8
 	originalTextX := textX
 
 	if leftIndicator != "" {
-		var indicatorPadding int32 = 8
+		var indicatorPadding int32 = 12
 		textX += rl.MeasureText(leftIndicator, INDICATOR_FONT_SIZE) + indicatorPadding
 	}
 
-	if isEmpty && state != STATE_ACTIVE {
-		rl.DrawText(props.Placeholder, textX, textY, fontSize, rl.Fade(rl.Black, 0.42))
-	} else if !isEmpty {
-		rl.DrawText(props.Value, textX, textY, fontSize, rl.Black)
-	}
-
-	if leftIndicator != "" {
-		rl.DrawText(leftIndicator, originalTextX, textY, fontSize, rl.Black)
-	}
-
-	DrawRectangleRoundedLinePixels(rect, ROUNDED, 1, borderColor)
 	newValue := InputValueChange(props, state)
 
-	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
+	if rl.CheckCollisionPointRec(rl.GetMousePosition(), rect) && rl.IsMouseButtonDown(rl.MouseButtonLeft) {
 		UpdateClickedCursorPosition(newValue, textX, fontSize, props)
 	}
 
-	if state == STATE_ACTIVE && props.Ui.InputCursorStart == props.Ui.InputCursorEnd {
-		DrawCusor(props.Ui.InputCursorStart, newValue, textX, textY, fontSize, props.Ui)
+	inputInstance.Draw = func() {
+		DrawRectangleRoundedPixels(rect, 4, rl.NewColor(41, 41, 41, 255))
+
+		if isEmpty && state != STATE_ACTIVE {
+			rl.DrawText(props.Placeholder, textX, textY, fontSize, rl.Fade(rl.White, 0.42))
+		} else if !isEmpty {
+			rl.DrawText(props.Value, textX, textY, fontSize, rl.White)
+		}
+
+		if leftIndicator != "" {
+			rl.DrawText(leftIndicator, originalTextX, textY, fontSize, rl.White)
+		}
+
+		if state == STATE_ACTIVE {
+			DrawRectangleRoundedLinePixels(rect, 4, 1, rl.Fade(rl.White, 0.4))
+		}
+
+		if state == STATE_ACTIVE && props.Ui.InputCursorStart == props.Ui.InputCursorEnd {
+			DrawCusor(props.Ui.InputCursorStart, newValue, textX, textY, fontSize, props.Ui)
+		}
 	}
 
-	return newValue
+	inputInstance.Rect = rect
+	inputInstance.Value = newValue
+	return inputInstance
 }
 
 func UpdateClickedCursorPosition(value string, textX, fontSize int32, props InputProps) {
@@ -110,14 +130,14 @@ func UpdateClickedCursorPosition(value string, textX, fontSize int32, props Inpu
 }
 
 func DrawCusor(position int, value string, textX, textY, fontSize int32, ui *lib.UIStruct) {
-	color := rl.Fade(rl.Black, 0.6)
+	color := rl.Fade(rl.White, 0.72)
 	if ShouldBlink(ui) {
-		color = rl.Black
+		color = rl.White
 	}
 
 	x := textX + rl.MeasureText(value[:position], fontSize) + 1
-	y := textY + 8
-	cursorHeight := fontSize - 6
+	y := textY + 7
+	cursorHeight := fontSize - 5
 	rl.DrawLine(x, y-cursorHeight, x, y+cursorHeight, color)
 }
 
@@ -159,7 +179,6 @@ func InputValueChange(props InputProps, state InteractableState) string {
 		if len(value) == 0 {
 			value += string(key)
 		} else {
-			fmt.Println(ui.InputCursorStart)
 			value = string(value[:ui.InputCursorStart]) + string(key) + string(value[ui.InputCursorStart:])
 		}
 		key = rl.GetCharPressed()
@@ -197,23 +216,23 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 	isFocused := id == ui.FocusedId
 	isInside := rl.CheckCollisionPointRec(mousePoint, rect)
 
-	if !isInside {
-		rl.SetMouseCursor(rl.MouseCursorDefault)
-	} else {
-		rl.SetMouseCursor(rl.MouseCursorIBeam)
-	}
-
 	if isFocused && rl.IsMouseButtonDown(rl.MouseButtonLeft) && !isInside {
 		ui.FocusedId = ""
+		rl.SetMouseCursor(rl.MouseCursorDefault)
 		return false
 	}
 
 	if isFocused {
+		if isInside {
+			rl.SetMouseCursor(rl.MouseCursorIBeam)
+		}
+
 		return false
 	}
 
 	if ui.HotId == id && !isInside {
 		ui.HotId = ""
+		rl.SetMouseCursor(rl.MouseCursorDefault)
 		return false
 	}
 
@@ -227,11 +246,13 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 	if isInside && rl.IsMouseButtonDown(rl.MouseButtonLeft) {
 		ui.FocusedId = id
 		ui.HotId = ""
+		rl.SetMouseCursor(rl.MouseCursorDefault)
 		return true
 	}
 
 	if !isFocused && isInside {
 		ui.HotId = id
+		rl.SetMouseCursor(rl.MouseCursorIBeam)
 	}
 
 	return false
@@ -247,4 +268,8 @@ func InputState(props InputProps) InteractableState {
 	default:
 		return STATE_INITIAL
 	}
+}
+
+func (input *InputInstance) Blur(ui *lib.UIStruct) {
+	ui.FocusedId = ""
 }

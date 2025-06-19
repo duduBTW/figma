@@ -29,8 +29,8 @@ func CalculateRectangle() rl.Rectangle {
 	return rect
 }
 
-func RectangleTool() {
-	RectangleSelectionActionHandler()
+func RectangleTool(container rl.Rectangle) {
+	RectangleSelectionActionHandler(container)
 
 	if startPosRec == nil || currentPosRec == nil {
 		return
@@ -39,37 +39,38 @@ func RectangleTool() {
 	rect := CalculateRectangle()
 
 	// Draw the selection rectangle (semi-transparent fill + border)
-	rl.DrawRectangleRec(rect, rl.Fade(rl.Black, 0.22))
+	rl.DrawRectangleRec(rect, rl.Fade(rl.White, 0.22))
 	rl.DrawRectangleLinesEx(rect, 1, rl.Blue)
 }
 
-func RectangleSelectionActionHandler() {
+func RectangleSelectionActionHandler(container rl.Rectangle) {
 	mousePos := rl.GetScreenToWorld2D(rl.GetMousePosition(), camera)
 	if startPosRec != nil && rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 		id := 0
-		fmt.Println("len", len(layers))
 		if len(layers) > 0 {
 			newId, _ := strconv.Atoi(layers[len(layers)-1].GetElement().Id)
 			id = newId
 		}
 		rect := CalculateRectangle()
-		layers = append(layers, &layer.Rectangle{
-			Width:  rect.ToInt32().Width,
-			Height: rect.ToInt32().Height,
-			Color:  rl.Fade(rl.Black, 0.32),
-			Element: layer.Element{
-				Id:       strconv.Itoa(id + 1),
-				Position: rl.NewVector2(rect.X, rect.Y),
-			},
-		})
+		fmt.Println(rect)
+		index := 0
+		for _, l := range layers {
+			_, isRec := l.(*layer.Rectangle)
+			if isRec {
+				index++
+			}
+		}
+
+		newLayer := layer.NewRectangle(strconv.Itoa(id+1), rect, index)
+
+		layers = append(layers, &newLayer)
 		startPosRec = nil
 		currentPosRec = nil
-		selectedValue = "selection"
-
+		selectedLayer = &newLayer
 		return
 	}
 
-	if startPosRec == nil && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	if startPosRec == nil && rl.IsMouseButtonPressed(rl.MouseButtonLeft) && rl.CheckCollisionPointRec(rl.GetMousePosition(), container) {
 		startPosRec = &mousePos
 		return
 	}
