@@ -105,3 +105,14 @@ func CheckCollisionPointCircle(centerX, centerY int32, radius float32, mousePoin
 func RandomRange(min, max int) int {
 	return rand.IntN(max-min) + min
 }
+
+func InverseLerp(a, b, value float32) float32 {
+	if b == a {
+		panic("cannot divide by zero")
+	}
+	return (value - a) / (b - a)
+}
+
+func Lerp(a, b, t float32) float32 {
+	return a + (b-a)*t
+}

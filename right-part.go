@@ -21,8 +21,9 @@ func RightPart(rect rl.Rectangle) {
 			},
 		},
 	})
-	layout.Render(ToolDock)
-	layout.Render(PropertiesPanel)
+	layout.Add(ToolDock)
+	layout.Add(PropertiesPanel)
+	layout.Draw()
 }
 
 func ToolDock(rect rl.Rectangle) {

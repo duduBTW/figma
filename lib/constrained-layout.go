@@ -25,6 +25,9 @@ type ContrainedLayout struct {
 	ChildrenComputedSizes []float32
 
 	rect rl.Rectangle
+
+	drawStack []ContrainedComponent
+	drawRects []rl.Rectangle
 }
 
 type ContrainedComponent func(current rl.Rectangle)
@@ -37,7 +40,7 @@ func NewConstrainedLayout(layout ContrainedLayout) ContrainedLayout {
 	return layout
 }
 
-func (layout *ContrainedLayout) Render(component ContrainedComponent) rl.Rectangle {
+func (layout *ContrainedLayout) Add(component ContrainedComponent) rl.Rectangle {
 	targetRect := rl.Rectangle{X: layout.rect.X + layout.Padding.start + layout.Contrains.X, Y: layout.rect.Y + layout.Padding.top + layout.Contrains.Y}
 
 	switch layout.Direction {
@@ -50,7 +53,8 @@ func (layout *ContrainedLayout) Render(component ContrainedComponent) rl.Rectang
 	}
 
 	if component != nil {
-		component(targetRect)
+		layout.drawStack = append(layout.drawStack, component)
+		layout.drawRects = append(layout.drawRects, targetRect)
 	}
 
 	switch layout.Direction {
@@ -65,6 +69,12 @@ func (layout *ContrainedLayout) Render(component ContrainedComponent) rl.Rectang
 	layout.index++
 
 	return targetRect
+}
+
+func (layout *ContrainedLayout) Draw() {
+	for index, draw := range layout.drawStack {
+		draw(layout.drawRects[index])
+	}
 }
 
 func (layout *ContrainedLayout) ComputeChildren() error {

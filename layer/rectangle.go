@@ -39,7 +39,7 @@ func NewRectangle(id string, rect rl.Rectangle, index int) Rectangle {
 		Color:  rl.Fade(rl.White, 0.32),
 		Element: Element{
 			Id:       id,
-			Position: rl.NewVector2(rect.X, rect.Y),
+			Position: NewAnimatedVector2(rect.X, rect.Y),
 			Name:     "Rectangle " + strconv.Itoa(index+1),
 		},
 		InputValues: map[string]string{
@@ -62,43 +62,132 @@ func (r *Rectangle) DrawHighlight() {
 	rl.DrawRectangleLinesEx(r.Rect(), 2, rl.Blue)
 }
 func (r *Rectangle) Rect() rl.Rectangle {
-	return rl.NewRectangle(r.Position.X, r.Position.Y, float32(r.Width), float32(r.Height))
+	return rl.NewRectangle(r.Position.X.Base, r.Position.Y.Base, float32(r.Width), float32(r.Height))
 }
 func (r *Rectangle) DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool {
 	interactable := components.NewInteractable(r.Id, ui)
-	clicked := interactable.Event(mousePoint, rl.NewRectangle(r.Position.X, r.Position.Y, float32(r.Width), float32(r.Height)))
-	rl.DrawRectangleRec(r.Rect(), r.Color)
+	x := r.Position.X.Base
+	if len(r.Position.X.Keyframes) >= 2 {
+		framePos := lib.InverseLerp(r.Position.X.Keyframes[0][0], r.Position.X.Keyframes[1][0], float32(ui.SelectedFrame))
+		x = lib.Lerp(r.Position.X.Keyframes[0][1], r.Position.X.Keyframes[1][1], lib.Clamp(framePos, 0, 1))
+	}
+
+	finalRect := rl.NewRectangle(x, r.Position.Y.Base, float32(r.Width), float32(r.Height))
+	clicked := interactable.Event(mousePoint, finalRect)
+	rl.DrawRectangleRec(finalRect, r.Color)
 	r.interactable = interactable
 
 	return clicked
 }
 
 func (r *Rectangle) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
-	// layout := lib.NewLayout(lib.PublicLayouyt{
-	// 	Gap:       8,
-	// 	Direction: lib.DIRECTION_COLUMN,
-	// }, rl.NewVector2(rect.X, rect.Y))
+	layout := lib.NewLayout(lib.PublicLayouyt{
+		Gap:       8,
+		Direction: lib.DIRECTION_COLUMN,
+	}, rl.NewVector2(rect.X, rect.Y))
 
-	row := lib.NewConstrainedLayout(lib.ContrainedLayout{
-		Direction: lib.DIRECTION_ROW,
-		Gap:       32,
-		Contrains: rl.NewRectangle(rect.X, rect.Y, rect.Width, 24),
-		ChildrenSize: []lib.ChildSize{
-			{
-				SizeType: lib.SIZE_ABSOLUTE,
-				Value:    60,
+	layout.Add(PositionProps(r, ui, rect, comp))
+	layout.Add(PositionKeyframes(r, ui, rect, comp))
+	layout.Draw()
+}
+
+func PositionProps(r *Rectangle, ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		contrains := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, rect.Width, 24)
+		row := lib.NewConstrainedLayout(lib.ContrainedLayout{
+			Direction: lib.DIRECTION_ROW,
+			Gap:       32,
+			Contrains: contrains,
+			ChildrenSize: []lib.ChildSize{
+				{
+					SizeType: lib.SIZE_ABSOLUTE,
+					Value:    60,
+				},
+				{
+					SizeType: lib.SIZE_WEIGHT,
+					Value:    1,
+				},
 			},
-			{
-				SizeType: lib.SIZE_WEIGHT,
-				Value:    1,
+		})
+
+		row.Add(Label("Position p"))
+		row.Add(Inputs(r, ui, comp))
+
+		return row.Draw, contrains
+	}
+}
+
+func PositionKeyframes(r *Rectangle, ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		contrains := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, rect.Width, 24)
+		row := lib.NewConstrainedLayout(lib.ContrainedLayout{
+			Direction: lib.DIRECTION_ROW,
+			Gap:       32,
+			Contrains: contrains,
+			ChildrenSize: []lib.ChildSize{
+				{
+					SizeType: lib.SIZE_ABSOLUTE,
+					Value:    60,
+				},
+				{
+					SizeType: lib.SIZE_WEIGHT,
+					Value:    1,
+				},
 			},
-		},
-	})
+		})
 
-	row.Render(Label())
-	row.Render(Inputs(r, ui, comp))
+		row.Add(Label("Position k"))
+		row.Add(Keyframes(r, ui, comp))
+		return row.Draw, contrains
+	}
+}
 
-	// layout.Draw()
+func Keyframes(r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
+	return func(rect rl.Rectangle) {
+		row := lib.NewConstrainedLayout(lib.ContrainedLayout{
+			Direction: lib.DIRECTION_ROW,
+			Gap:       8,
+			Contrains: rl.NewRectangle(rect.X, rect.Y, rect.Width, 24),
+			ChildrenSize: []lib.ChildSize{
+				{
+					SizeType: lib.SIZE_WEIGHT,
+					Value:    0.5,
+				},
+				{
+					SizeType: lib.SIZE_WEIGHT,
+					Value:    0.5,
+				},
+			},
+		})
+
+		row.Add(KeyframeButton("x", r, ui, comp))
+		row.Add(KeyframeButton("y", r, ui, comp))
+		row.Draw()
+	}
+}
+
+func KeyframeButton(text string, r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
+	return func(rect rl.Rectangle) {
+		button := comp.Button("keyframe"+text, rl.NewVector2(rect.X, rect.Y), []lib.Component{KeyframeButtonContent(text)})
+
+		if button.Clicked {
+
+			r.Position.X.Keyframes = append(r.Position.X.Keyframes, [2]float32{float32(ui.SelectedFrame), r.Position.X.Base})
+			fmt.Println(r.Position.X.Keyframes)
+		}
+
+		button.Draw()
+	}
+}
+
+func KeyframeButtonContent(textContet string) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		fontSize := 16
+		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(textContet, int32(fontSize))), float32(fontSize))
+		return func() {
+			rl.DrawText(textContet, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
+		}, rect
+	}
 }
 
 func Inputs(r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
@@ -119,14 +208,14 @@ func Inputs(r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.Cont
 			},
 		})
 
-		row.Render(PanelInput(r, ui, comp, "y", &r.Position.Y))
-		row.Render(PanelInput(r, ui, comp, "x", &r.Position.X))
+		row.Add(PanelInput(r, ui, comp, "y", &r.Position.Y.Base))
+		row.Add(PanelInput(r, ui, comp, "x", &r.Position.X.Base))
+		row.Draw()
 	}
 }
 
-func Label() lib.ContrainedComponent {
+func Label(text string) lib.ContrainedComponent {
 	return func(rect rl.Rectangle) {
-		text := "Position"
 		fontSize := 14
 		rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y+4, int32(fontSize), rl.White)
 	}
@@ -158,6 +247,5 @@ func PanelInput(r *Rectangle, ui *lib.UIStruct, comp components.Components, key 
 		}
 
 		input.Draw()
-		// return input.Draw, input.Rect
 	}
 }

@@ -11,6 +11,10 @@ type UIStruct struct {
 	BlinkTimer float32
 	// Time a blink stayed active
 	BlinkingTimer float32
+
+	SelectedFrame int
+
+	IsPlaying bool
 }
 
 func (ui *UIStruct) SetCursors(pos int) {

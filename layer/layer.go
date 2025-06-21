@@ -6,6 +6,23 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type AnimatedProp struct {
+	Base      float32
+	Keyframes [][2]float32
+}
+
+type AnimatedVector2 struct {
+	X AnimatedProp
+	Y AnimatedProp
+}
+
+func NewAnimatedVector2(x float32, y float32) AnimatedVector2 {
+	return AnimatedVector2{
+		X: AnimatedProp{Base: x, Keyframes: [][2]float32{}},
+		Y: AnimatedProp{Base: y, Keyframes: [][2]float32{}},
+	}
+}
+
 type Layer interface {
 	GetName() string
 	GetElement() *Element
@@ -18,7 +35,7 @@ type Layer interface {
 type Element struct {
 	Id       string
 	Name     string
-	Position rl.Vector2
+	Position AnimatedVector2
 }
 
 type Circle struct {

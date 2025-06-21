@@ -22,8 +22,9 @@ func UpperPart(rect rl.Rectangle) {
 			},
 		},
 	})
-	layout.Render(Canvas)
-	layout.Render(RightPart)
+	layout.Add(Canvas)
+	layout.Add(RightPart)
+	layout.Draw()
 }
 
 func Canvas(rect rl.Rectangle) {
@@ -34,9 +35,9 @@ func Canvas(rect rl.Rectangle) {
 	RectangleTool(rect)
 	CanvasContent(rect)
 
-	if selectedLayer != nil {
-		selectedLayer.DrawHighlight()
-	}
+	// if selectedLayer != nil {
+	// 	selectedLayer.DrawHighlight()
+	// }
 
 	rl.EndScissorMode()
 	rl.EndMode2D()

@@ -31,6 +31,10 @@ func main() {
 	for !rl.WindowShouldClose() {
 		rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), rl.Black)
 
+		if rl.IsKeyPressed(rl.KeySpace) {
+			ui.IsPlaying = !ui.IsPlaying
+		}
+
 		padding := lib.Padding{}
 		padding.All(PANEL_GAP)
 		bodyLayout := lib.NewConstrainedLayout(lib.ContrainedLayout{
@@ -49,8 +53,9 @@ func main() {
 				},
 			},
 		})
-		bodyLayout.Render(UpperPart)
-		bodyLayout.Render(Timeline)
+		bodyLayout.Add(UpperPart)
+		bodyLayout.Add(Timeline)
+		bodyLayout.Draw()
 
 		rl.EndDrawing()
 	}
