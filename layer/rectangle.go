@@ -43,8 +43,8 @@ func NewRectangle(id string, rect rl.Rectangle, index int) Rectangle {
 			Name:     "Rectangle " + strconv.Itoa(index+1),
 		},
 		InputValues: map[string]string{
-			"y": strconv.Itoa(int(rect.Y)),
-			"x": strconv.Itoa(int(rect.X)),
+			"y": "",
+			"x": "",
 		},
 	}
 }
@@ -58,23 +58,48 @@ func (r *Rectangle) GetElement() *Element {
 func (r *Rectangle) State() components.InteractableState {
 	return r.interactable.State()
 }
-func (r *Rectangle) DrawHighlight() {
-	rl.DrawRectangleLinesEx(r.Rect(), 2, rl.Blue)
+func (r *Rectangle) DrawHighlight(ui lib.UIStruct) {
+	rl.DrawRectangleLinesEx(r.Rect(ui.SelectedFrame), 2, rl.Blue)
 }
-func (r *Rectangle) Rect() rl.Rectangle {
-	return rl.NewRectangle(r.Position.X.Base, r.Position.Y.Base, float32(r.Width), float32(r.Height))
+
+func KeyFramePosition(animatedProp AnimatedProp, selectedFrame int) float32 {
+	x := animatedProp.Base
+	keyframes := animatedProp.Keyframes
+
+	if len(keyframes) >= 2 {
+		if selectedFrame <= int(keyframes[0][0]) {
+			x = keyframes[0][1]
+		} else if selectedFrame >= int(keyframes[len(keyframes)-1][0]) {
+			x = keyframes[len(keyframes)-1][1]
+		} else {
+			var framesAround [2][2]float32
+			for index, keyframe := range keyframes {
+				if keyframe[0] > float32(selectedFrame) {
+					framesAround = [2][2]float32{keyframes[index-1], keyframe}
+					break
+				}
+			}
+			framePos := lib.InverseLerp(framesAround[0][0], framesAround[1][0], float32(selectedFrame))
+			x = lib.Lerp(framesAround[0][1], framesAround[1][1], lib.Clamp(framePos, 0, 1))
+		}
+
+	} else if len(keyframes) == 1 {
+		x = keyframes[0][1]
+	}
+
+	return x
+}
+func (r *Rectangle) Rect(selectedFrame int) rl.Rectangle {
+	x := KeyFramePosition(r.Position.X, selectedFrame)
+	y := KeyFramePosition(r.Position.Y, selectedFrame)
+
+	return rl.NewRectangle(x, y, float32(r.Width), float32(r.Height))
 }
 func (r *Rectangle) DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool {
 	interactable := components.NewInteractable(r.Id, ui)
-	x := r.Position.X.Base
-	if len(r.Position.X.Keyframes) >= 2 {
-		framePos := lib.InverseLerp(r.Position.X.Keyframes[0][0], r.Position.X.Keyframes[1][0], float32(ui.SelectedFrame))
-		x = lib.Lerp(r.Position.X.Keyframes[0][1], r.Position.X.Keyframes[1][1], lib.Clamp(framePos, 0, 1))
-	}
-
-	finalRect := rl.NewRectangle(x, r.Position.Y.Base, float32(r.Width), float32(r.Height))
-	clicked := interactable.Event(mousePoint, finalRect)
-	rl.DrawRectangleRec(finalRect, r.Color)
+	rect := r.Rect(ui.SelectedFrame)
+	clicked := interactable.Event(mousePoint, rect)
+	rl.DrawRectangleRec(rect, r.Color)
 	r.interactable = interactable
 
 	return clicked
@@ -89,6 +114,9 @@ func (r *Rectangle) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp compo
 	layout.Add(PositionProps(r, ui, rect, comp))
 	layout.Add(PositionKeyframes(r, ui, rect, comp))
 	layout.Draw()
+}
+func (*Rectangle) InsertKeyframe(animatedProp *AnimatedProp, ui *lib.UIStruct) {
+	animatedProp.InsertKeyframe(ui)
 }
 
 func PositionProps(r *Rectangle, ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) lib.Component {
@@ -160,20 +188,18 @@ func Keyframes(r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.C
 			},
 		})
 
-		row.Add(KeyframeButton("x", r, ui, comp))
-		row.Add(KeyframeButton("y", r, ui, comp))
+		row.Add(KeyframeButton("x", &r.Position.X, ui, comp))
+		row.Add(KeyframeButton("y", &r.Position.Y, ui, comp))
 		row.Draw()
 	}
 }
 
-func KeyframeButton(text string, r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
+func KeyframeButton(text string, animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
 	return func(rect rl.Rectangle) {
 		button := comp.Button("keyframe"+text, rl.NewVector2(rect.X, rect.Y), []lib.Component{KeyframeButtonContent(text)})
 
 		if button.Clicked {
-
-			r.Position.X.Keyframes = append(r.Position.X.Keyframes, [2]float32{float32(ui.SelectedFrame), r.Position.X.Base})
-			fmt.Println(r.Position.X.Keyframes)
+			animatedProp.InsertKeyframe(ui)
 		}
 
 		button.Draw()
@@ -208,8 +234,8 @@ func Inputs(r *Rectangle, ui *lib.UIStruct, comp components.Components) lib.Cont
 			},
 		})
 
-		row.Add(PanelInput(r, ui, comp, "y", &r.Position.Y.Base))
-		row.Add(PanelInput(r, ui, comp, "x", &r.Position.X.Base))
+		row.Add(PanelInput(r, ui, comp, "x", r.Rect(ui.SelectedFrame).X, &r.Position.X))
+		row.Add(PanelInput(r, ui, comp, "y", r.Rect(ui.SelectedFrame).Y, &r.Position.Y))
 		row.Draw()
 	}
 }
@@ -221,29 +247,47 @@ func Label(text string) lib.ContrainedComponent {
 	}
 }
 
-func PanelInput(r *Rectangle, ui *lib.UIStruct, comp components.Components, key string, value *float32) lib.ContrainedComponent {
+func PanelInput(r *Rectangle, ui *lib.UIStruct, comp components.Components, key string, displayValue float32, updateValue *AnimatedProp) lib.ContrainedComponent {
 	return func(avaliablePosition rl.Rectangle) {
+		inputValue := r.InputValues[key]
+		if inputValue == "" {
+			inputValue = strconv.Itoa(int(displayValue))
+		}
+
 		input := comp.Input(components.InputProps{
 			X:             avaliablePosition.X,
 			Y:             avaliablePosition.Y,
 			Id:            r.Id + key,
 			Width:         avaliablePosition.Width,
-			Value:         r.InputValues[key],
+			Value:         inputValue,
 			MousePoint:    rl.GetMousePosition(),
 			Ui:            ui,
 			LeftIndicator: rune(key[0]),
 		})
 
-		r.InputValues[key] = input.Value
+		if input.IsFocusing {
+			r.InputValues[key] = input.Value
+		}
+
+		if input.State == components.STATE_ACTIVE {
+			r.InputValues[key] = input.Value
+		}
+
 		if input.IsBluring || input.HasSubmitted {
 			input.Blur(ui)
 
 			var newIntValue, err = strconv.ParseFloat(r.InputValues[key], 32)
 			if err == nil {
-				*value = float32(newIntValue)
+				updateValue.Base = float32(newIntValue)
 			} else {
-				r.InputValues[key] = fmt.Sprint(value)
+				r.InputValues[key] = fmt.Sprint(updateValue)
 			}
+
+			if len(updateValue.Keyframes) >= 1 {
+				updateValue.InsertKeyframe(ui)
+			}
+
+			r.InputValues[key] = ""
 		}
 
 		input.Draw()

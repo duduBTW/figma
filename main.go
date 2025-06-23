@@ -10,7 +10,7 @@ import (
 var layers = []layer.Layer{}
 var selectedLayer layer.Layer
 var ui = lib.UIStruct{}
-var drawHighlight func() = nil
+var drawHighlight func(lib.UIStruct) = nil
 var camera = rl.Camera2D{}
 var c = components.NewComponents(&ui)
 
@@ -19,14 +19,14 @@ func main() {
 	rl.SetConfigFlags(rl.FlagMsaa4xHint)
 	rl.SetConfigFlags(rl.FlagBorderlessWindowedMode)
 
-	rl.InitWindow(1600, 900, "Figma")
+	rl.InitWindow(1280, 800, "Figma")
 	defer rl.CloseWindow()
 
 	rl.SetTargetFPS(60)
 
 	camera.Zoom = 1
 
-	IconTexture = LoadSVGAsTexture("D:\\Peronal\\figma\\assets\\icons\\type.svg", 16, 16)
+	// IconTexture = LoadSVGAsTexture("D:\\Peronal\\figma\\assets\\icons\\type.svg", 16, 16)
 
 	for !rl.WindowShouldClose() {
 		rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), rl.Black)

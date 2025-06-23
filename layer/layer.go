@@ -7,8 +7,13 @@ import (
 )
 
 type AnimatedProp struct {
+	Name      string
 	Base      float32
 	Keyframes [][2]float32
+}
+
+func (prop *AnimatedProp) InsertKeyframe(ui *lib.UIStruct) {
+	prop.Keyframes = append(prop.Keyframes, [2]float32{float32(ui.SelectedFrame), prop.Base})
 }
 
 type AnimatedVector2 struct {
@@ -18,8 +23,8 @@ type AnimatedVector2 struct {
 
 func NewAnimatedVector2(x float32, y float32) AnimatedVector2 {
 	return AnimatedVector2{
-		X: AnimatedProp{Base: x, Keyframes: [][2]float32{}},
-		Y: AnimatedProp{Base: y, Keyframes: [][2]float32{}},
+		X: AnimatedProp{Base: x, Keyframes: [][2]float32{}, Name: "X"},
+		Y: AnimatedProp{Base: y, Keyframes: [][2]float32{}, Name: "Y"},
 	}
 }
 
@@ -29,7 +34,7 @@ type Layer interface {
 	DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool
 	DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components)
 	State() components.InteractableState
-	DrawHighlight()
+	DrawHighlight(lib.UIStruct)
 }
 
 type Element struct {

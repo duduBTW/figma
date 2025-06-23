@@ -43,17 +43,85 @@ func LayersPanel(rect rl.Rectangle) {
 	layout := lib.NewLayout(lib.PublicLayouyt{
 		Padding:   padding,
 		Direction: lib.DIRECTION_COLUMN,
-		Gap:       2,
+		Gap:       8,
 	}, rl.NewVector2(rect.X, rect.Y))
 
 	for index, l := range layers {
-		layout.Add(LayerTimelineItem(l, index, rect))
+		layout.Add(LayerTimelineLabel(l, index, rect))
+
+		xAnimationProp := l.GetElement().Position.X
+		yAnimationProp := l.GetElement().Position.Y
+		if len(xAnimationProp.Keyframes) > 0 || len(yAnimationProp.Keyframes) > 0 {
+			layout.Add(LayerPositionLine(rect, xAnimationProp, yAnimationProp))
+		}
 	}
 
 	layout.Draw()
 }
 
-func LayerTimelineItem(layer layer.Layer, index int, containerRect rl.Rectangle) lib.Component {
+func LayerPositionLine(containerRect rl.Rectangle, x layer.AnimatedProp, y layer.AnimatedProp) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		padding := lib.Padding{}
+		padding.Start(32)
+		padding.Top(12)
+		row := lib.NewLayout(lib.PublicLayouyt{
+			Padding:   padding,
+			Direction: lib.DIRECTION_ROW,
+			Gap:       16,
+		}, avaliablePosition)
+
+		row.Add(LayerPositionLineLabel(containerRect))
+		row.Add(LayerPositionLineProperties(containerRect, x, y))
+		return row.Draw, rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, row.Size.Width, row.Size.Height)
+	}
+}
+
+func LayerPositionLineLabel(containerRect rl.Rectangle) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		text := "Position"
+		fontSize := 14
+		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, containerRect.Width-100-32, 14)
+
+		return func() {
+			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y, int32(fontSize), rl.White)
+		}, rect
+	}
+}
+
+func LayerPositionLineProperties(containerRect rl.Rectangle, x layer.AnimatedProp, y layer.AnimatedProp) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		padding := lib.Padding{}
+		padding.Start(32)
+		column := lib.NewLayout(lib.PublicLayouyt{
+			Padding:   padding,
+			Direction: lib.DIRECTION_COLUMN,
+			Gap:       12,
+		}, avaliablePosition)
+
+		if len(x.Keyframes) > 0 {
+			column.Add(LayerPositionLineProperty("x", x))
+		}
+
+		if len(y.Keyframes) > 0 {
+			column.Add(LayerPositionLineProperty("y", y))
+		}
+
+		return column.Draw, rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, column.Size.Width, column.Size.Height)
+	}
+}
+
+func LayerPositionLineProperty(text string, animatedProp layer.AnimatedProp) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		var fontSize int32 = 14
+		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(text, fontSize)), float32(fontSize))
+
+		return func() {
+			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y, fontSize, rl.White)
+		}, rect
+	}
+}
+
+func LayerTimelineLabel(layer layer.Layer, index int, containerRect rl.Rectangle) lib.Component {
 	return lib.NewComponent(func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
 		interactable := components.NewInteractable("layer"+strconv.Itoa(index), &ui)
 
@@ -72,7 +140,7 @@ func LayerTimelineItem(layer layer.Layer, index int, containerRect rl.Rectangle)
 		}
 
 		padding := lib.Padding{}
-		padding.All(8)
+		padding.All(4)
 		box := c.Box(components.BoxProps{
 			Padding:      padding,
 			Rect:         rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, containerRect.Width, 0),
@@ -181,16 +249,30 @@ func TimelineFramesContent(rect rl.Rectangle) {
 	}, rl.NewVector2(rect.X, rect.Y))
 
 	for _, l := range layers {
-		layout.Add(TimelinePropery(l, frameWidth, rect))
+		layout.Add(TimelineSpacer())
+		layout.Add(TimelinePropery(l.GetElement().Position.X, frameWidth, rect))
+		layout.Add(TimelinePropery(l.GetElement().Position.Y, frameWidth, rect))
 	}
 
 	layout.Draw()
 }
 
-func TimelinePropery(layer layer.Layer, frameWidth float32, containerRect rl.Rectangle) lib.Component {
+func TimelineSpacer() lib.Component {
 	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, containerRect.Width, 32)
-		keyframes := layer.GetElement().Position.X.Keyframes
+		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.X, 24+8, 24+8)
+		return func() {
+			rl.DrawRectanglePro(rect, rl.NewVector2(0, 0), 0, rl.Fade(rl.White, 0))
+		}, rect
+	}
+}
+func TimelinePropery(animatedProp layer.AnimatedProp, frameWidth float32, containerRect rl.Rectangle) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		if len(animatedProp.Keyframes) == 0 {
+			return func() {}, rl.NewRectangle(0, 0, 0, 0)
+		}
+
+		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, containerRect.Width, 14+12+2)
+		keyframes := animatedProp.Keyframes
 
 		return func() {
 			y := int32(rect.Y + (rect.Height / 2))

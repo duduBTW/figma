@@ -12,7 +12,9 @@ type InputInstance struct {
 	Value        string
 	Rect         rl.Rectangle
 	IsBluring    bool
+	IsFocusing   bool
 	HasSubmitted bool
+	State        InteractableState
 }
 
 type InputProps struct {
@@ -42,6 +44,9 @@ func (c *Components) Input(props InputProps) InputInstance {
 
 	// on blur
 	inputInstance.IsBluring = state == STATE_INITIAL && c.inputStates[props.Id] == STATE_ACTIVE
+
+	// on focus
+	inputInstance.IsFocusing = state == STATE_ACTIVE && c.inputStates[props.Id] == STATE_INITIAL
 
 	// on submit
 	inputInstance.HasSubmitted = state == STATE_ACTIVE && rl.IsKeyPressed(rl.KeyEnter)
@@ -90,6 +95,7 @@ func (c *Components) Input(props InputProps) InputInstance {
 
 	inputInstance.Rect = rect
 	inputInstance.Value = newValue
+	inputInstance.State = state
 	return inputInstance
 }
 

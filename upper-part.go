@@ -35,9 +35,9 @@ func Canvas(rect rl.Rectangle) {
 	RectangleTool(rect)
 	CanvasContent(rect)
 
-	// if selectedLayer != nil {
-	// 	selectedLayer.DrawHighlight()
-	// }
+	if selectedLayer != nil {
+		selectedLayer.DrawHighlight(ui)
+	}
 
 	rl.EndScissorMode()
 	rl.EndMode2D()
