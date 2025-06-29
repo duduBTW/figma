@@ -18,23 +18,24 @@ type InputInstance struct {
 }
 
 type InputProps struct {
-	Id            string
-	X             float32
-	Y             float32
-	Width         float32
-	Placeholder   string
-	Value         string
-	Ui            *lib.UIStruct
-	MousePoint    rl.Vector2
-	LeftIndicator rune
+	Id          string
+	X           float32
+	Y           float32
+	Width       float32
+	Placeholder string
+	Value       string
+	Ui          *lib.UIStruct
+	MousePoint  rl.Vector2
+	// LeftIndicator rune
 }
 
 const INPUT_HEIGHT float32 = 24
 const INDICATOR_FONT_SIZE int32 = 14
 
 func (c *Components) Input(props InputProps) InputInstance {
+	c.ui.TabOrder = append(c.ui.TabOrder, props.Id)
 	inputInstance := InputInstance{}
-	leftIndicator := string(props.LeftIndicator)
+	// leftIndicator := string(props.LeftIndicator)
 	rect := rl.NewRectangle(props.X, props.Y, props.Width, INPUT_HEIGHT)
 
 	rectInt32 := rect.ToInt32()
@@ -58,12 +59,12 @@ func (c *Components) Input(props InputProps) InputInstance {
 	var fontSize int32 = 14
 	var textY int32 = rectInt32.Y + (int32(rect.Height)-fontSize)/2 + 1
 	var textX int32 = rectInt32.X + 8
-	originalTextX := textX
+	// originalTextX := textX
 
-	if leftIndicator != "" {
-		var indicatorPadding int32 = 12
-		textX += rl.MeasureText(leftIndicator, INDICATOR_FONT_SIZE) + indicatorPadding
-	}
+	// if leftIndicator != "" {
+	// 	var indicatorPadding int32 = 12
+	// 	textX += rl.MeasureText(leftIndicator, INDICATOR_FONT_SIZE) + indicatorPadding
+	// }
 
 	newValue := InputValueChange(props, state)
 
@@ -80,9 +81,9 @@ func (c *Components) Input(props InputProps) InputInstance {
 			rl.DrawText(props.Value, textX, textY, fontSize, rl.White)
 		}
 
-		if leftIndicator != "" {
-			rl.DrawText(leftIndicator, originalTextX, textY, fontSize, rl.White)
-		}
+		// if leftIndicator != "" {
+		// 	rl.DrawText(leftIndicator, originalTextX, textY, fontSize, rl.White)
+		// }
 
 		if state == STATE_ACTIVE {
 			DrawRectangleRoundedLinePixels(rect, 4, 1, rl.Fade(rl.White, 0.4))
@@ -224,13 +225,11 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 
 	if isFocused && rl.IsMouseButtonDown(rl.MouseButtonLeft) && !isInside {
 		ui.FocusedId = ""
-		rl.SetMouseCursor(rl.MouseCursorDefault)
 		return false
 	}
 
 	if isFocused {
 		if isInside {
-			rl.SetMouseCursor(rl.MouseCursorIBeam)
 		}
 
 		return false
@@ -238,7 +237,6 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 
 	if ui.HotId == id && !isInside {
 		ui.HotId = ""
-		rl.SetMouseCursor(rl.MouseCursorDefault)
 		return false
 	}
 
@@ -252,7 +250,6 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 	if isInside && rl.IsMouseButtonDown(rl.MouseButtonLeft) {
 		ui.FocusedId = id
 		ui.HotId = ""
-		rl.SetMouseCursor(rl.MouseCursorDefault)
 		return true
 	}
 

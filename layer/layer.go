@@ -6,60 +6,33 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type AnimatedProp struct {
-	Name      string
-	Base      float32
-	Keyframes [][2]float32
-}
-
-func (prop *AnimatedProp) InsertKeyframe(ui *lib.UIStruct) {
-	prop.Keyframes = append(prop.Keyframes, [2]float32{float32(ui.SelectedFrame), prop.Base})
-}
-
-type AnimatedVector2 struct {
-	X AnimatedProp
-	Y AnimatedProp
-}
-
-func NewAnimatedVector2(x float32, y float32) AnimatedVector2 {
-	return AnimatedVector2{
-		X: AnimatedProp{Base: x, Keyframes: [][2]float32{}, Name: "X"},
-		Y: AnimatedProp{Base: y, Keyframes: [][2]float32{}, Name: "Y"},
-	}
-}
-
 type Layer interface {
 	GetName() string
 	GetElement() *Element
 	DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool
 	DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components)
+	DrawTimeline(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components)
 	State() components.InteractableState
-	DrawHighlight(lib.UIStruct)
+	DrawHighlight(lib.UIStruct, components.Components)
+	Rect(int) rl.Rectangle
 }
 
 type Element struct {
 	Id       string
 	Name     string
 	Position AnimatedVector2
+
+	interactable components.Interactable
 }
 
-type Circle struct {
-	Element
+func NewElement(id string, rect rl.Vector2, name string) Element {
+	return Element{
+		Id:       id,
+		Position: NewAnimatedVector2(id, rect.X, rect.Y),
+		Name:     name,
+	}
 }
 
-func (c *Circle) GetElement() *Element {
-	return &c.Element
-}
-func (c *Circle) DrawComponent() {
-}
-
-type Text struct {
-	Element
-}
-
-func (t *Text) GetElement() *Element {
-	return &t.Element
-}
-
-func (c *Text) DrawComponent() {
+func (r *Element) State() components.InteractableState {
+	return r.interactable.State()
 }

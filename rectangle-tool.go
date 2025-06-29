@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/dudubtw/figma/layer"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -46,13 +43,7 @@ func RectangleTool(container rl.Rectangle) {
 func RectangleSelectionActionHandler(container rl.Rectangle) {
 	mousePos := rl.GetScreenToWorld2D(rl.GetMousePosition(), camera)
 	if startPosRec != nil && rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
-		id := 0
-		if len(layers) > 0 {
-			newId, _ := strconv.Atoi(layers[len(layers)-1].GetElement().Id)
-			id = newId
-		}
 		rect := CalculateRectangle()
-		fmt.Println(rect)
 		index := 0
 		for _, l := range layers {
 			_, isRec := l.(*layer.Rectangle)
@@ -61,12 +52,8 @@ func RectangleSelectionActionHandler(container rl.Rectangle) {
 			}
 		}
 
-		newLayer := layer.NewRectangle(strconv.Itoa(id+1), rect, index)
-
-		layers = append(layers, &newLayer)
-		startPosRec = nil
-		currentPosRec = nil
-		selectedLayer = &newLayer
+		newLayer := layer.NewRectangle(NewLayerId(), rect, index)
+		AppendLayer(&newLayer)
 		return
 	}
 

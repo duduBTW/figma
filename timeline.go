@@ -34,29 +34,34 @@ func Timeline(rect rl.Rectangle) {
 
 	layout.Add(LayersPanel)
 	layout.Add(TimelineFrames)
+	LayerList(rect)
 	layout.Draw()
 }
 
+func LayerList(rect rl.Rectangle) {
+
+}
+
 func LayersPanel(rect rl.Rectangle) {
-	padding := lib.Padding{}
-	padding.Top(20)
-	layout := lib.NewLayout(lib.PublicLayouyt{
-		Padding:   padding,
-		Direction: lib.DIRECTION_COLUMN,
-		Gap:       8,
-	}, rl.NewVector2(rect.X, rect.Y))
+	// padding := lib.Padding{}
+	// padding.Top(20)
+	// layout := lib.NewLayout(lib.PublicLayouyt{
+	// 	Padding:   padding,
+	// 	Direction: lib.DIRECTION_COLUMN,
+	// 	Gap:       8,
+	// }, rl.NewVector2(rect.X, rect.Y))
 
-	for index, l := range layers {
-		layout.Add(LayerTimelineLabel(l, index, rect))
+	// for index, l := range layers {
+	// 	layout.Add(LayerTimelineLabel(l, index, rect))
 
-		xAnimationProp := l.GetElement().Position.X
-		yAnimationProp := l.GetElement().Position.Y
-		if len(xAnimationProp.Keyframes) > 0 || len(yAnimationProp.Keyframes) > 0 {
-			layout.Add(LayerPositionLine(rect, xAnimationProp, yAnimationProp))
-		}
-	}
+	// 	xAnimationProp := l.GetElement().Position.X
+	// 	yAnimationProp := l.GetElement().Position.Y
+	// 	if len(xAnimationProp.SortedKeyframes) > 0 || len(yAnimationProp.SortedKeyframes) > 0 {
+	// 		layout.Add(LayerPositionLine(rect, xAnimationProp, yAnimationProp))
+	// 	}
+	// }
 
-	layout.Draw()
+	// layout.Draw()
 }
 
 func LayerPositionLine(containerRect rl.Rectangle, x layer.AnimatedProp, y layer.AnimatedProp) lib.Component {
@@ -98,11 +103,11 @@ func LayerPositionLineProperties(containerRect rl.Rectangle, x layer.AnimatedPro
 			Gap:       12,
 		}, avaliablePosition)
 
-		if len(x.Keyframes) > 0 {
+		if len(x.SortedKeyframes) > 0 {
 			column.Add(LayerPositionLineProperty("x", x))
 		}
 
-		if len(y.Keyframes) > 0 {
+		if len(y.SortedKeyframes) > 0 {
 			column.Add(LayerPositionLineProperty("y", y))
 		}
 
@@ -243,18 +248,18 @@ func TimelineFramesContent(rect rl.Rectangle) {
 		}
 	}
 
-	layout := lib.NewLayout(lib.PublicLayouyt{
-		Direction: lib.DIRECTION_COLUMN,
-		Gap:       2,
-	}, rl.NewVector2(rect.X, rect.Y))
+	// layout := lib.NewLayout(lib.PublicLayouyt{
+	// 	Direction: lib.DIRECTION_COLUMN,
+	// 	Gap:       2,
+	// }, rl.NewVector2(rect.X, rect.Y))
 
-	for _, l := range layers {
-		layout.Add(TimelineSpacer())
-		layout.Add(TimelinePropery(l.GetElement().Position.X, frameWidth, rect))
-		layout.Add(TimelinePropery(l.GetElement().Position.Y, frameWidth, rect))
-	}
+	// for _, l := range layers {
+	// 	layout.Add(TimelineSpacer())
+	// 	layout.Add(TimelinePropery(l.GetElement().Position.X, frameWidth, rect))
+	// 	layout.Add(TimelinePropery(l.GetElement().Position.Y, frameWidth, rect))
+	// }
 
-	layout.Draw()
+	// layout.Draw()
 }
 
 func TimelineSpacer() lib.Component {
@@ -267,12 +272,12 @@ func TimelineSpacer() lib.Component {
 }
 func TimelinePropery(animatedProp layer.AnimatedProp, frameWidth float32, containerRect rl.Rectangle) lib.Component {
 	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-		if len(animatedProp.Keyframes) == 0 {
+		if len(animatedProp.SortedKeyframes) == 0 {
 			return func() {}, rl.NewRectangle(0, 0, 0, 0)
 		}
 
 		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, containerRect.Width, 14+12+2)
-		keyframes := animatedProp.Keyframes
+		keyframes := animatedProp.SortedKeyframes
 
 		return func() {
 			y := int32(rect.Y + (rect.Height / 2))

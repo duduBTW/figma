@@ -14,7 +14,7 @@ import (
 const (
 	BOTTOM_PANEL_HEIGHT = 360
 	TOOL_DOCK_HEIGHT    = 48
-	SIDE_PANEL_WIDTH    = 280
+	SIDE_PANEL_WIDTH    = 480
 	PANEL_GAP           = 8
 	PANEL_ROUNDNESS     = 6
 )

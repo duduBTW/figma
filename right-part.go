@@ -26,6 +26,12 @@ func RightPart(rect rl.Rectangle) {
 	layout.Draw()
 }
 
+var tools = []lib.Tool{
+	lib.ToolSelection,
+	lib.ToolRectangle,
+	lib.ToolText,
+}
+
 func ToolDock(rect rl.Rectangle) {
 	DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
 
@@ -36,32 +42,41 @@ func ToolDock(rect rl.Rectangle) {
 		Padding:   padding,
 		Gap:       8,
 	}, rl.NewVector2(rect.X, rect.Y))
-	layout.Add(Test)
-	layout.Add(Square)
-	layout.Add(Square)
-	layout.Add(Square)
+
+	for _, tool := range tools {
+		layout.Add(ToolButton(tool))
+	}
+
 	layout.Draw()
 }
 
-var Square = lib.NewComponent(func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-	rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, 32, 32)
-	return func() {
-		DrawRectangleRoundedPixels(rect, 4, rl.NewColor(12, 159, 233, 255))
-	}, rect
-})
-
-func Test(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-	button := c.Button("test", avaliablePosition, []lib.Component{Content})
-	return button.Draw, button.Rect
+var toolButtonLabels = map[lib.Tool]string{
+	lib.ToolSelection: "S",
+	lib.ToolRectangle: "R",
+	lib.ToolText:      "T",
 }
 
-func Content(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-	textContet := "Select"
-	fontSize := 16
-	rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(textContet, int32(fontSize))), float32(fontSize))
-	return func() {
-		rl.DrawText(textContet, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
-	}, rect
+func ToolButton(tool lib.Tool) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		button := c.Button("tool-"+string(tool), avaliablePosition, []lib.Component{Content(tool)})
+
+		if button.Clicked {
+			ui.SelectedTool = tool
+		}
+
+		return button.Draw, button.Rect
+	}
+}
+
+func Content(tool lib.Tool) lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		textContet := toolButtonLabels[tool]
+		fontSize := 16
+		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(textContet, int32(fontSize))), float32(fontSize))
+		return func() {
+			rl.DrawText(textContet, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
+		}, rect
+	}
 }
 
 func PropertiesPanel(rect rl.Rectangle) {

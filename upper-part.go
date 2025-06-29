@@ -32,11 +32,19 @@ func Canvas(rect rl.Rectangle) {
 	intT := rect.ToInt32()
 	rl.BeginScissorMode(intT.X, intT.Y, intT.Width, intT.Height)
 
-	RectangleTool(rect)
 	CanvasContent(rect)
 
+	switch ui.SelectedTool {
+	case lib.ToolSelection:
+		Selection(rect)
+	case lib.ToolRectangle:
+		RectangleTool(rect)
+	case lib.ToolText:
+		TextTool(rect)
+	}
+
 	if selectedLayer != nil {
-		selectedLayer.DrawHighlight(ui)
+		selectedLayer.DrawHighlight(ui, c)
 	}
 
 	rl.EndScissorMode()
