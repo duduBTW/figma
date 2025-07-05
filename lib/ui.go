@@ -52,3 +52,7 @@ func (ui *UIStruct) DecrementCursor() {
 func (ui *UIStruct) ResetTabOrder() {
 	ui.TabOrder = []string{}
 }
+
+func (ui *UIStruct) TogglePlay() {
+	ui.IsPlaying = !ui.IsPlaying
+}

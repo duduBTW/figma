@@ -85,18 +85,23 @@ type Layout struct {
 type Component func(avaliablePosition rl.Vector2) (func(), rl.Rectangle)
 
 // FIX-ME DIRECTION NON PASSED
-func NewLayout(props PublicLayouyt, contrains rl.Vector2) *Layout {
-	return &Layout{
+func NewLayout(props PublicLayouyt, position rl.Vector2) *Layout {
+	layout := Layout{
 		PublicLayouyt: props,
-		Position: rl.Vector2{
-			X: contrains.X + props.Padding.start,
-			Y: contrains.Y + props.Padding.top,
-		},
 		Size: Size{
 			Width:  props.Padding.start + props.Padding.end,
 			Height: props.Padding.top + props.Padding.bottom,
 		},
 	}
+	layout.SetPosition(rl.Vector2{
+		X: position.X + props.Padding.start,
+		Y: position.Y + props.Padding.top,
+	})
+	return &layout
+}
+
+func (layout *Layout) SetPosition(position rl.Vector2) {
+	layout.Position = position
 }
 
 func (layout *Layout) Draw() {
@@ -139,6 +144,10 @@ func (layout *Layout) next(component rl.Rectangle) {
 		layout.Position.Y = layout.Position.Y + component.Height + float32(layout.Gap)
 	}
 	layout.index++
+}
+
+func (layout *Layout) Rect() rl.Rectangle {
+	return rl.NewRectangle(layout.Position.X, layout.Position.Y, layout.Size.Width, layout.Size.Height)
 }
 
 func NewComponent(component Component) Component {

@@ -2,6 +2,7 @@ package lib
 
 import (
 	"errors"
+	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -36,7 +37,19 @@ func NewConstrainedLayout(layout ContrainedLayout) ContrainedLayout {
 	layout.Contrains.Width -= (layout.Padding.start + layout.Padding.end)
 	layout.Contrains.Height -= (layout.Padding.top + layout.Padding.bottom)
 
-	layout.ComputeChildren()
+	var computedVlue float32 = 0
+	switch layout.Direction {
+	case DIRECTION_ROW:
+		computedVlue = layout.Contrains.Width
+	case DIRECTION_COLUMN:
+		computedVlue = layout.Contrains.Height
+	}
+	comptedSizes, err := ComputeChildren(layout.ChildrenSize, computedVlue, layout.Gap)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	layout.ChildrenComputedSizes = comptedSizes
 	return layout
 }
 
@@ -77,24 +90,18 @@ func (layout *ContrainedLayout) Draw() {
 	}
 }
 
-func (layout *ContrainedLayout) ComputeChildren() error {
-	if len(layout.ChildrenSize) == 0 {
-		return errors.New("no children to compute")
+func ComputeChildren(childrenSize []ChildSize, value float32, gap float32) ([]float32, error) {
+	var computedSizes = make([]float32, len(childrenSize))
+	if len(childrenSize) == 0 {
+		return computedSizes, errors.New("no children to compute")
 	}
 
 	type Index = int
-	var remainingSize float32 = 0
-	switch layout.Direction {
-	case DIRECTION_ROW:
-		remainingSize = layout.Contrains.Width - layout.Gap*float32(len(layout.ChildrenSize)-1)
-	case DIRECTION_COLUMN:
-		remainingSize = layout.Contrains.Height - layout.Gap*float32(len(layout.ChildrenSize)-1)
-	}
+	var remainingSize float32 = value - gap*float32(len(childrenSize)-1)
 
 	var weightSum float32 = 0
 	var weightSizes = make(map[Index]float32)
-	var computedSizes = make([]float32, len(layout.ChildrenSize))
-	for index, ChildSize := range layout.ChildrenSize {
+	for index, ChildSize := range childrenSize {
 		value := ChildSize.Value
 		if ChildSize.SizeType == SIZE_WEIGHT {
 			weightSizes[index] = value
@@ -107,13 +114,12 @@ func (layout *ContrainedLayout) ComputeChildren() error {
 	}
 
 	if weightSum > 1 {
-		return errors.New("weight sum not equal to 1")
+		return computedSizes, errors.New("weight sum not equal to 1")
 	}
 
 	for index, weight := range weightSizes {
 		computedSizes[index] = float32(remainingSize) * weight
 	}
 
-	layout.ChildrenComputedSizes = computedSizes
-	return nil
+	return computedSizes, nil
 }

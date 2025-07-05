@@ -53,29 +53,43 @@ func main() {
 		rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), rl.Black)
 
 		if rl.IsKeyPressed(rl.KeySpace) {
-			ui.IsPlaying = !ui.IsPlaying
+			ui.TogglePlay()
 		}
 
 		padding := lib.Padding{}
 		padding.All(PANEL_GAP)
-		bodyLayout := lib.NewConstrainedLayout(lib.ContrainedLayout{
+		bodyLayout := lib.NewMixLayout(lib.PublicMixLayouyt{
 			Direction: lib.DIRECTION_COLUMN,
 			Gap:       PANEL_GAP,
 			Padding:   padding,
-			Contrains: rl.NewRectangle(0, 0, float32(rl.GetScreenWidth()), float32(rl.GetScreenHeight())),
-			ChildrenSize: []lib.ChildSize{
-				{
-					SizeType: lib.SIZE_WEIGHT,
-					Value:    1,
+			InitialRect: lib.MixLayouytRect{
+				Position: rl.NewVector2(0, 0),
+				Width: lib.ContrainedSize{
+					Value: float32(rl.GetScreenWidth()),
+					Contrains: []lib.ChildSize{
+						{
+							SizeType: lib.SIZE_WEIGHT,
+							Value:    1,
+						},
+					},
 				},
-				{
-					SizeType: lib.SIZE_ABSOLUTE,
-					Value:    BOTTOM_PANEL_HEIGHT,
+				Height: lib.ContrainedSize{
+					Value: float32(rl.GetScreenHeight()),
+					Contrains: []lib.ChildSize{
+						{
+							SizeType: lib.SIZE_WEIGHT,
+							Value:    1,
+						},
+						{
+							SizeType: lib.SIZE_ABSOLUTE,
+							Value:    BOTTOM_PANEL_HEIGHT,
+						},
+					},
 				},
 			},
 		})
-		bodyLayout.Add(UpperPart)
-		bodyLayout.Add(Timeline)
+		bodyLayout.Add(UpperPart())
+		bodyLayout.Add(Timeline())
 		bodyLayout.Draw()
 
 		rl.EndDrawing()

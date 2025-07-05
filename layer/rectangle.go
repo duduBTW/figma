@@ -1,7 +1,6 @@
 package layer
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/dudubtw/figma/components"
@@ -128,6 +127,30 @@ func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Compone
 // Timeline
 // -----------
 
-func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
-	fmt.Println(rect)
+func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		layout := lib.NewMixLayout(lib.PublicMixLayouyt{
+			Gap:       12,
+			Direction: lib.DIRECTION_COLUMN,
+			InitialRect: lib.MixLayouytRect{
+				Position: rl.NewVector2(rect.X, rect.Y),
+				Width: lib.ContrainedSize{
+					Value: rect.Width,
+					Contrains: []lib.ChildSize{
+						{
+							SizeType: lib.SIZE_WEIGHT,
+							Value:    1,
+						},
+					},
+				},
+			},
+		})
+
+		layout.Add(TimelinePanelTitle(r.Name))
+		if r.Position.CanDrawTimeline() {
+			layout.Add(r.Position.Timeline(ui, comp))
+		}
+
+		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
+	}
 }

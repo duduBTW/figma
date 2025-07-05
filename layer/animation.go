@@ -79,7 +79,6 @@ func (animatedProp AnimatedProp) KeyFramePosition(selectedFrame int) float32 {
 }
 
 func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
-
 	return func(rect rl.Rectangle) {
 		layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
 			Contrains: rect,
@@ -100,6 +99,32 @@ func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Compon
 		layout.Draw()
 	}
 }
+func (animatedProp *AnimatedProp) NewInput(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		layout := lib.NewMixLayout(lib.PublicMixLayouyt{
+			Direction: lib.DIRECTION_ROW,
+			InitialRect: lib.MixLayouytRect{
+				Position: rl.NewVector2(rect.X, rect.Y),
+				Width: lib.ContrainedSize{
+					Value: rect.Width,
+					Contrains: []lib.ChildSize{
+						{
+							SizeType: lib.SIZE_WEIGHT,
+							Value:    1,
+						},
+						{
+							SizeType: lib.SIZE_ABSOLUTE,
+							Value:    24,
+						},
+					},
+				},
+			},
+		})
+		layout.Add(NewInputEditableContent(animatedProp, ui, comp))
+		layout.Add(NewKeyFrameButton(animatedProp, ui, comp))
+		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
+	}
+}
 
 func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
 	return func(rect rl.Rectangle) {
@@ -108,6 +133,16 @@ func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp component
 			animatedProp.InsertKeyframe(float32(ui.SelectedFrame), animatedProp.Base)
 		}
 		button.Draw()
+	}
+}
+
+func NewKeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		button := comp.Button(animatedProp.Name, rl.NewVector2(rect.X, rect.Y), []lib.Component{})
+		if button.Clicked {
+			animatedProp.InsertKeyframe(float32(ui.SelectedFrame), animatedProp.Base)
+		}
+		return button.Draw, button.Rect.Width, button.Rect.Height
 	}
 }
 
@@ -156,5 +191,52 @@ func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp com
 		}
 
 		input.Draw()
+	}
+}
+
+func NewInputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		inputValue := animatedProp.inputValue
+		updateValue := animatedProp.KeyFramePosition(ui.SelectedFrame)
+		if inputValue == empty {
+			inputValue = strconv.Itoa(int(updateValue))
+		}
+
+		input := comp.Input(components.InputProps{
+			X:          rect.X,
+			Y:          rect.Y,
+			Id:         animatedProp.Name,
+			Width:      rect.Width,
+			Value:      inputValue,
+			MousePoint: rl.GetMousePosition(),
+			Ui:         ui,
+		})
+
+		if input.IsFocusing {
+			animatedProp.inputValue = input.Value
+		}
+
+		if input.State == components.STATE_ACTIVE {
+			animatedProp.inputValue = input.Value
+		}
+
+		if input.IsBluring || input.HasSubmitted {
+			input.Blur(ui)
+
+			if animatedProp.inputValue == "" {
+				animatedProp.inputValue = empty
+			} else {
+				var newIntValue, err = strconv.ParseFloat(animatedProp.inputValue, 32)
+				if err != nil {
+					animatedProp.inputValue = fmt.Sprint(updateValue)
+				}
+
+				animatedProp.Set(float32(newIntValue), ui)
+				animatedProp.inputValue = empty
+			}
+
+		}
+
+		return input.Draw, input.Rect.Width, input.Rect.Height
 	}
 }

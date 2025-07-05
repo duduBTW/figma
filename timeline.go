@@ -10,58 +10,130 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func Timeline(rect rl.Rectangle) {
-	DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
-
-	padding := lib.Padding{}
-	padding.All(12)
-	layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
-		Padding:   padding,
-		Contrains: rect,
-		Direction: lib.DIRECTION_ROW,
+func NewTilelineRowLayout(positionRect rl.Rectangle) lib.Layout {
+	return *lib.NewLayout(lib.PublicLayouyt{
 		Gap:       12,
-		ChildrenSize: []lib.ChildSize{
-			{
-				SizeType: lib.SIZE_ABSOLUTE,
-				Value:    280,
-			},
-			{
-				SizeType: lib.SIZE_WEIGHT,
-				Value:    1,
-			},
-		},
-	})
-
-	layout.Add(LayersPanel)
-	layout.Add(TimelineFrames)
-	LayerList(rect)
-	layout.Draw()
+		Direction: lib.DIRECTION_ROW,
+	}, rl.NewVector2(positionRect.X, positionRect.Y))
 }
 
-func LayerList(rect rl.Rectangle) {
+func Timeline() lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
 
+		padding := lib.Padding{}
+		padding.All(12)
+		layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
+			Padding:   padding,
+			Contrains: rect,
+			Direction: lib.DIRECTION_COLUMN,
+			Gap:       12,
+			ChildrenSize: []lib.ChildSize{
+				{
+					SizeType: lib.SIZE_ABSOLUTE,
+					Value:    32,
+				},
+				{
+					SizeType: lib.SIZE_WEIGHT,
+					Value:    1,
+				},
+			},
+		})
+
+		layout.Add(TimelineUpperPart())
+		layout.Add(TimelineBotttomPart())
+
+		return layout.Draw, 0, 0
+	}
 }
 
-func LayersPanel(rect rl.Rectangle) {
-	// padding := lib.Padding{}
-	// padding.Top(20)
-	// layout := lib.NewLayout(lib.PublicLayouyt{
-	// 	Padding:   padding,
-	// 	Direction: lib.DIRECTION_COLUMN,
-	// 	Gap:       8,
-	// }, rl.NewVector2(rect.X, rect.Y))
+func TimelineUpperPart() lib.ContrainedComponent {
+	return func(rect rl.Rectangle) {
+		row := NewTilelineRowLayout(rect)
+		row.Add(TimelineControls())
+		// row.Add(TimelineVisibleSlider())
+		row.Draw()
+	}
+}
 
-	// for index, l := range layers {
-	// 	layout.Add(LayerTimelineLabel(l, index, rect))
+func TimelineBotttomPart() lib.ContrainedComponent {
+	return func(current rl.Rectangle) {
+		layout := lib.NewMixLayout(lib.PublicMixLayouyt{
+			Direction: lib.DIRECTION_COLUMN,
+			Gap:       16,
+			InitialRect: lib.MixLayouytRect{
+				Position: rl.NewVector2(current.X, current.Y),
+				Width: lib.ContrainedSize{
+					Value: current.Width,
+					Contrains: []lib.ChildSize{
+						{
+							SizeType: lib.SIZE_WEIGHT,
+							Value:    1,
+						},
+					},
+				},
+			},
+		})
+		for _, layer := range layers {
+			layout.Add(layer.DrawTimeline(&ui, c))
+		}
+		layout.Draw()
+	}
+}
 
-	// 	xAnimationProp := l.GetElement().Position.X
-	// 	yAnimationProp := l.GetElement().Position.Y
-	// 	if len(xAnimationProp.SortedKeyframes) > 0 || len(yAnimationProp.SortedKeyframes) > 0 {
-	// 		layout.Add(LayerPositionLine(rect, xAnimationProp, yAnimationProp))
-	// 	}
-	// }
+func R(height float32) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		return func() {
+			rl.DrawRectangle(rect.ToInt32().X, rect.ToInt32().Y, rect.ToInt32().Width, int32(height), rl.Red)
+		}, 0, height
+	}
+}
+func B(height float32) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		return func() {
+			rl.DrawRectangle(rect.ToInt32().X, rect.ToInt32().Y, rect.ToInt32().Width, int32(height), rl.Blue)
+		}, 0, height
+	}
+}
 
-	// layout.Draw()
+func TimelineControls() lib.Component {
+	buttonListLayout := lib.NewLayout(lib.PublicLayouyt{
+		Direction: lib.DIRECTION_ROW,
+		Gap:       8,
+	}, rl.NewVector2(0, 0))
+
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		buttonListLayout.SetPosition(avaliablePosition)
+		buttonListLayout.Add(PlayButton())
+		rect := buttonListLayout.Rect()
+		rect.Width = 280
+		return buttonListLayout.Draw, rect
+	}
+}
+func PlayButton() lib.Component {
+	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+		button := c.Button("play-button", avaliablePosition, []lib.Component{})
+
+		if button.Clicked {
+			ui.TogglePlay()
+		}
+
+		return button.Draw, button.Rect
+	}
+}
+
+var visibleFrames = [2]int{0, 240}
+
+func TimelineHeader(rect rl.Rectangle) {
+	totalFrames := int(float32((visibleFrames[1] - visibleFrames[0])) * 0.1)
+	frameWidth := rect.Width * 0.1
+
+	for i := 0; i <= 10; i++ {
+		var x int32 = int32(rect.X + frameWidth*float32(i) + 1)
+		label := strconv.Itoa(totalFrames*i) + "F"
+		var fontSize int32 = 10
+		rl.DrawText(label, lib.MinInt32((rect.ToInt32().X+rect.ToInt32().Width)-rl.MeasureText(label, fontSize), x+4), rect.ToInt32().Y, fontSize, rl.White)
+	}
 }
 
 func LayerPositionLine(containerRect rl.Rectangle, x layer.AnimatedProp, y layer.AnimatedProp) lib.Component {
@@ -171,39 +243,6 @@ func LayerTimelineItemText(layer layer.Layer) lib.Component {
 		return func() {
 			rl.DrawText(textContent, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
 		}, rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(textContent, int32(fontSize))), float32(fontSize))
-	}
-}
-
-var visibleFrames = [2]int{0, 240}
-
-func TimelineFrames(rect rl.Rectangle) {
-	layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
-		Contrains: rect,
-		Direction: lib.DIRECTION_COLUMN,
-		ChildrenSize: []lib.ChildSize{
-			{
-				SizeType: lib.SIZE_ABSOLUTE,
-				Value:    20,
-			},
-			{
-				SizeType: lib.SIZE_WEIGHT,
-				Value:    1,
-			},
-		},
-	})
-	layout.Add(TimelineFramesHeader)
-	layout.Add(TimelineFramesContent)
-	layout.Draw()
-}
-func TimelineFramesHeader(rect rl.Rectangle) {
-	totalFrames := int(float32((visibleFrames[1] - visibleFrames[0])) * 0.1)
-	frameWidth := rect.Width * 0.1
-
-	for i := 0; i <= 10; i++ {
-		var x int32 = int32(rect.X + frameWidth*float32(i) + 1)
-		label := strconv.Itoa(totalFrames*i) + "F"
-		var fontSize int32 = 10
-		rl.DrawText(label, lib.MinInt32((rect.ToInt32().X+rect.ToInt32().Width)-rl.MeasureText(label, fontSize), x+4), rect.ToInt32().Y, fontSize, rl.White)
 	}
 }
 

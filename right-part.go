@@ -37,11 +37,19 @@ func ToolDock(rect rl.Rectangle) {
 
 	padding := lib.Padding{}
 	padding.Axis(12, 8)
-	layout := lib.NewLayout(lib.PublicLayouyt{
+	// layout := lib.NewLayout(lib.PublicLayouyt{
+	// Direction: lib.DIRECTION_ROW,
+	// Padding:   padding,
+	// Gap:       8,
+	// }, rl.NewVector2(rect.X, rect.Y))
+	layout := lib.NewMixLayout(lib.PublicMixLayouyt{
 		Direction: lib.DIRECTION_ROW,
 		Padding:   padding,
 		Gap:       8,
-	}, rl.NewVector2(rect.X, rect.Y))
+		InitialRect: lib.MixLayouytRect{
+			Position: rl.NewVector2(rect.X, rect.Y),
+		},
+	})
 
 	for _, tool := range tools {
 		layout.Add(ToolButton(tool))
@@ -56,15 +64,15 @@ var toolButtonLabels = map[lib.Tool]string{
 	lib.ToolText:      "T",
 }
 
-func ToolButton(tool lib.Tool) lib.Component {
-	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-		button := c.Button("tool-"+string(tool), avaliablePosition, []lib.Component{Content(tool)})
+func ToolButton(tool lib.Tool) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		button := c.Button("tool-"+string(tool), rl.NewVector2(rect.X, rect.Y), []lib.Component{Content(tool)})
 
 		if button.Clicked {
 			ui.SelectedTool = tool
 		}
 
-		return button.Draw, button.Rect
+		return button.Draw, button.Rect.Width, button.Rect.Height
 	}
 }
 

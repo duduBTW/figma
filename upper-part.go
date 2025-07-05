@@ -6,25 +6,27 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func UpperPart(rect rl.Rectangle) {
-	layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
-		Direction: lib.DIRECTION_ROW,
-		Gap:       PANEL_GAP,
-		Contrains: rect,
-		ChildrenSize: []lib.ChildSize{
-			{
-				SizeType: lib.SIZE_WEIGHT,
-				Value:    1,
+func UpperPart() lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
+			Direction: lib.DIRECTION_ROW,
+			Gap:       PANEL_GAP,
+			Contrains: rect,
+			ChildrenSize: []lib.ChildSize{
+				{
+					SizeType: lib.SIZE_WEIGHT,
+					Value:    1,
+				},
+				{
+					SizeType: lib.SIZE_ABSOLUTE,
+					Value:    SIDE_PANEL_WIDTH,
+				},
 			},
-			{
-				SizeType: lib.SIZE_ABSOLUTE,
-				Value:    SIDE_PANEL_WIDTH,
-			},
-		},
-	})
-	layout.Add(Canvas)
-	layout.Add(RightPart)
-	layout.Draw()
+		})
+		layout.Add(Canvas)
+		layout.Add(RightPart)
+		return layout.Draw, 0, 0
+	}
 }
 
 func Canvas(rect rl.Rectangle) {
