@@ -44,14 +44,8 @@ func (v2 *AnimatedVector2) Inputs(ui *lib.UIStruct, comp components.Components) 
 	}
 }
 
-func (v2 *AnimatedVector2) canDrawTimelineX() bool {
-	return len(v2.X.SortedKeyframes) > 0
-}
-func (v2 *AnimatedVector2) canDrawTimelineY() bool {
-	return len(v2.Y.SortedKeyframes) > 0
-}
 func (v2 *AnimatedVector2) CanDrawTimeline() bool {
-	return v2.canDrawTimelineX() || v2.canDrawTimelineX()
+	return v2.X.CanDrawTimeline() || v2.Y.CanDrawTimeline()
 }
 
 func (v2 *AnimatedVector2) Timeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
@@ -66,11 +60,11 @@ func (v2 *AnimatedVector2) Timeline(ui *lib.UIStruct, comp components.Components
 func (v2 *AnimatedVector2) TimelineInputs(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := TimelinePanelInputsLayout(rect)
-		if v2.canDrawTimelineX() {
-			layout.Add(v2.X.NewInput(ui, comp))
+		if v2.X.CanDrawTimeline() {
+			layout.Add(v2.X.TimelineRow(ui, comp))
 		}
-		if v2.canDrawTimelineY() {
-			layout.Add(v2.Y.NewInput(ui, comp))
+		if v2.Y.CanDrawTimeline() {
+			layout.Add(v2.Y.TimelineRow(ui, comp))
 		}
 
 		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height

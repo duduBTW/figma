@@ -63,7 +63,7 @@ func Label(text string) lib.ContrainedComponent {
 
 func TimelinePanelRowLayout(container rl.Rectangle) *lib.MixLayout {
 	padding := lib.Padding{}
-	padding.Start(32)
+	// padding.Start(32)
 	return lib.NewMixLayout(lib.PublicMixLayouyt{
 		Padding:   padding,
 		Direction: lib.DIRECTION_ROW,

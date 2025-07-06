@@ -26,7 +26,7 @@ type ContrainedSize struct {
 	computed  []float32
 
 	// where the user is right now
-	currentIndex int
+	CurrentIndex int
 }
 
 func (size *ContrainedSize) Exists() bool {
@@ -49,14 +49,16 @@ func (size *ContrainedSize) CurrentValue(gap float32) float32 {
 		return 0
 	}
 
-	value := size.computed[size.currentIndex]
+	value := size.computed[size.CurrentIndex]
 	return value
 }
 func (size *ContrainedSize) NextValue(gap float32) float32 {
 	value := size.CurrentValue(gap)
 
-	if size.currentIndex < len(size.computed)-1 {
-		size.currentIndex++
+	if size.CurrentIndex < len(size.computed)-1 {
+		size.CurrentIndex++
+	} else {
+		fmt.Println("not", size.CurrentIndex, len(size.computed)-1)
 	}
 	return value
 }

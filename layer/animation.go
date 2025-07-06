@@ -122,7 +122,7 @@ func (animatedProp *AnimatedProp) NewInput(ui *lib.UIStruct, comp components.Com
 		})
 		layout.Add(NewInputEditableContent(animatedProp, ui, comp))
 		layout.Add(NewKeyFrameButton(animatedProp, ui, comp))
-		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
+		return layout.Draw, 0, layout.CurrentRect.Height
 	}
 }
 
@@ -238,5 +238,49 @@ func NewInputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp 
 		}
 
 		return input.Draw, input.Rect.Width, input.Rect.Height
+	}
+}
+
+func (animatedProp *AnimatedProp) CanDrawTimeline() bool {
+	return len(animatedProp.SortedKeyframes) > 0
+}
+func (animatedProp *AnimatedProp) TimelineRow(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		rowLayout := lib.NewMixLayout(lib.PublicMixLayouyt{
+			Gap:       12,
+			Direction: lib.DIRECTION_ROW,
+			InitialRect: lib.MixLayouytRect{
+				Position: rl.NewVector2(rect.X, rect.Y),
+				Width: lib.ContrainedSize{
+					Value: rect.Width,
+					Contrains: []lib.ChildSize{
+						{
+							SizeType: lib.SIZE_ABSOLUTE,
+							Value:    280,
+						},
+						{
+							SizeType: lib.SIZE_WEIGHT,
+							Value:    1,
+						},
+					},
+				},
+			},
+		})
+
+		rowLayout.Add(animatedProp.NewInput(ui, comp))
+		rowLayout.Add(animatedProp.TimelineFrames())
+		return rowLayout.Draw, 0, rowLayout.CurrentRect.Height
+	}
+}
+
+func (animatedProp *AnimatedProp) TimelineFrames() lib.MixComponent {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		const height = 24
+		var draw = func() {
+			y := int32(rect.Y + (height / 2))
+			rl.DrawLine(rect.ToInt32().X, y, rect.ToInt32().X+rect.ToInt32().Width, y, rl.NewColor(68, 68, 68, 255))
+		}
+
+		return draw, 0, height
 	}
 }
