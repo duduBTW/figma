@@ -6,16 +6,10 @@ import (
 
 	"github.com/dudubtw/figma/components"
 	"github.com/dudubtw/figma/layer"
+	"github.com/dudubtw/figma/layout"
 	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
-
-func NewTilelineRowLayout(positionRect rl.Rectangle) lib.Layout {
-	return *lib.NewLayout(lib.PublicLayouyt{
-		Gap:       12,
-		Direction: lib.DIRECTION_ROW,
-	}, rl.NewVector2(positionRect.X, positionRect.Y))
-}
 
 func Timeline() lib.MixComponent {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
@@ -49,7 +43,7 @@ func Timeline() lib.MixComponent {
 
 func TimelineUpperPart() lib.ContrainedComponent {
 	return func(rect rl.Rectangle) {
-		row := NewTilelineRowLayout(rect)
+		row := layout.Timeline.NewTilelineRowLayout(rect)
 		row.Add(TimelineControls())
 		// row.Add(TimelineVisibleSlider())
 		row.Draw()

@@ -49,22 +49,16 @@ func (v2 *AnimatedVector2) CanDrawTimeline() bool {
 }
 
 func (v2 *AnimatedVector2) Timeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		row := TimelinePanelRowLayout(rect)
-		row.Add(TimelinePanelLabel("Position"))
-		row.Add(v2.TimelineInputs(ui, comp))
-		row.Draw()
-		return row.Draw, row.CurrentRect.Width, row.CurrentRect.Height
-	}
+	return comp.TimelineRow("Position", v2.TimelineInputs(ui, comp))
 }
 func (v2 *AnimatedVector2) TimelineInputs(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := TimelinePanelInputsLayout(rect)
 		if v2.X.CanDrawTimeline() {
-			layout.Add(v2.X.TimelineRow(ui, comp))
+			layout.Add(v2.X.NewInput(ui, comp))
 		}
 		if v2.Y.CanDrawTimeline() {
-			layout.Add(v2.Y.TimelineRow(ui, comp))
+			layout.Add(v2.Y.NewInput(ui, comp))
 		}
 
 		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height

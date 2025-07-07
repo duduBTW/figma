@@ -61,37 +61,8 @@ func Label(text string) lib.ContrainedComponent {
 // Timeline
 // ----------
 
-func TimelinePanelRowLayout(container rl.Rectangle) *lib.MixLayout {
-	padding := lib.Padding{}
-	// padding.Start(32)
-	return lib.NewMixLayout(lib.PublicMixLayouyt{
-		Padding:   padding,
-		Direction: lib.DIRECTION_ROW,
-		Gap:       16,
-		InitialRect: lib.MixLayouytRect{
-			Position: rl.NewVector2(container.X, container.Y),
-			Width: lib.ContrainedSize{
-				Value: container.Width,
-				Contrains: []lib.ChildSize{
-					{
-						SizeType: lib.SIZE_WEIGHT,
-						Value:    1,
-					},
-					{
-						SizeType: lib.SIZE_ABSOLUTE,
-						Value:    100,
-					},
-				},
-			},
-		},
-	})
-}
-
 func TimelinePanelTitle(text string) lib.MixComponent {
 	return components.Text(text, 16)
-}
-func TimelinePanelLabel(text string) lib.MixComponent {
-	return components.Text(text, 14)
 }
 
 func TimelinePanelInputsLayout(containerRect rl.Rectangle) *lib.MixLayout {

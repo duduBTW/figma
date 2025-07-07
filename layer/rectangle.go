@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/dudubtw/figma/components"
+	"github.com/dudubtw/figma/layout"
 	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -129,23 +130,7 @@ func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Compone
 
 func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.NewMixLayout(lib.PublicMixLayouyt{
-			Gap:       12,
-			Direction: lib.DIRECTION_COLUMN,
-			InitialRect: lib.MixLayouytRect{
-				Position: rl.NewVector2(rect.X, rect.Y),
-				Width: lib.ContrainedSize{
-					Value: rect.Width,
-					Contrains: []lib.ChildSize{
-						{
-							SizeType: lib.SIZE_WEIGHT,
-							Value:    1,
-						},
-					},
-				},
-			},
-		})
-
+		layout := layout.Timeline.Root(rect)
 		layout.Add(TimelinePanelTitle(r.Name))
 		if r.Position.CanDrawTimeline() {
 			layout.Add(r.Position.Timeline(ui, comp))

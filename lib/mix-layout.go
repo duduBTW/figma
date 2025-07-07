@@ -57,8 +57,6 @@ func (size *ContrainedSize) NextValue(gap float32) float32 {
 
 	if size.CurrentIndex < len(size.computed)-1 {
 		size.CurrentIndex++
-	} else {
-		fmt.Println("not", size.CurrentIndex, len(size.computed)-1)
 	}
 	return value
 }
@@ -129,6 +127,7 @@ func (layout *MixLayout) next(width, height float32) {
 
 	switch layout.Direction {
 	case DIRECTION_ROW:
+		isFirst := layout.InitialRect.Position.X == layout.CurrentRect.X
 		layout.CurrentRect.X += width + layout.Gap
 
 		currentHeight := layout.CurrentRect.Height
@@ -138,7 +137,11 @@ func (layout *MixLayout) next(width, height float32) {
 		}
 
 		layout.CurrentRect.Width += width
+		if !isFirst {
+			layout.CurrentRect.Width += layout.Gap
+		}
 	case DIRECTION_COLUMN:
+		isFirst := layout.InitialRect.Position.Y == layout.CurrentRect.Y
 		layout.CurrentRect.Y += height + layout.Gap
 
 		currentWidth := layout.CurrentRect.Width
@@ -148,5 +151,8 @@ func (layout *MixLayout) next(width, height float32) {
 		}
 
 		layout.CurrentRect.Height += height
+		if !isFirst {
+			layout.CurrentRect.Height += layout.Gap
+		}
 	}
 }

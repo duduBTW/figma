@@ -2,6 +2,7 @@ package layer
 
 import (
 	"github.com/dudubtw/figma/components"
+	"github.com/dudubtw/figma/layout"
 	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -93,13 +94,15 @@ func (t *Text) FontSizeControls(ui *lib.UIStruct, rect rl.Rectangle, comp compon
 
 func (t *Text) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.NewMixLayout(lib.PublicMixLayouyt{
-			Gap:       12,
-			Direction: lib.DIRECTION_COLUMN,
-			InitialRect: lib.MixLayouytRect{
-				Position: rl.NewVector2(rect.X, rect.Y),
-			},
-		})
+		layout := layout.Timeline.Root(rect)
+		layout.Add(TimelinePanelTitle(t.Name))
+		if t.Position.CanDrawTimeline() {
+			layout.Add(t.Position.Timeline(ui, comp))
+		}
+
+		if t.FontSize.CanDrawTimeline() {
+			layout.Add(comp.TimelineRow("Font size", t.FontSize.NewInput(ui, comp)))
+		}
 
 		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
 	}
