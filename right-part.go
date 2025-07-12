@@ -5,25 +5,21 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func RightPart(rect rl.Rectangle) {
-	layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
-		Direction: lib.DIRECTION_COLUMN,
-		Contrains: rect,
-		Gap:       PANEL_GAP,
-		ChildrenSize: []lib.ChildSize{
-			{
-				SizeType: lib.SIZE_ABSOLUTE,
-				Value:    TOOL_DOCK_HEIGHT,
-			},
-			{
-				SizeType: lib.SIZE_WEIGHT,
-				Value:    1,
-			},
-		},
-	})
-	layout.Add(ToolDock)
-	layout.Add(PropertiesPanel)
-	layout.Draw()
+func RightPart() lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		layout := lib.
+			NewLayout().
+			PositionRect(rect).
+			Column().
+			Gap(PANEL_GAP).
+			Width(rect.Width).
+			Height(rect.Height,
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: TOOL_DOCK_HEIGHT},
+				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1}).
+			Add(ToolDock()).
+			Add(PropertiesPanel())
+		return layout.Draw, 0, 0
+	}
 }
 
 var tools = []lib.Tool{
@@ -32,30 +28,22 @@ var tools = []lib.Tool{
 	lib.ToolText,
 }
 
-func ToolDock(rect rl.Rectangle) {
-	DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
+func ToolDock() lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
+		layout := lib.
+			NewLayout().
+			PositionRect(rect).
+			Row().
+			Padding(lib.NewPadding().Axis(12, 8)).
+			Gap(8)
 
-	padding := lib.Padding{}
-	padding.Axis(12, 8)
-	// layout := lib.NewLayout(lib.PublicLayouyt{
-	// Direction: lib.DIRECTION_ROW,
-	// Padding:   padding,
-	// Gap:       8,
-	// }, rl.NewVector2(rect.X, rect.Y))
-	layout := lib.NewMixLayout(lib.PublicMixLayouyt{
-		Direction: lib.DIRECTION_ROW,
-		Padding:   padding,
-		Gap:       8,
-		InitialRect: lib.MixLayouytRect{
-			Position: rl.NewVector2(rect.X, rect.Y),
-		},
-	})
+		for _, tool := range tools {
+			layout.Add(ToolButton(tool))
+		}
 
-	for _, tool := range tools {
-		layout.Add(ToolButton(tool))
+		return layout.Draw, 0, 0
 	}
-
-	layout.Draw()
 }
 
 var toolButtonLabels = map[lib.Tool]string{
@@ -64,7 +52,7 @@ var toolButtonLabels = map[lib.Tool]string{
 	lib.ToolText:      "T",
 }
 
-func ToolButton(tool lib.Tool) lib.MixComponent {
+func ToolButton(tool lib.Tool) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		button := c.Button("tool-"+string(tool), rl.NewVector2(rect.X, rect.Y), []lib.Component{Content(tool)})
 
@@ -77,27 +65,30 @@ func ToolButton(tool lib.Tool) lib.MixComponent {
 }
 
 func Content(tool lib.Tool) lib.Component {
-	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
 		textContet := toolButtonLabels[tool]
-		fontSize := 16
-		rect := rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(textContet, int32(fontSize))), float32(fontSize))
+		var fontSize int32 = 16
 		return func() {
-			rl.DrawText(textContet, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
-		}, rect
+			rl.DrawText(textContet, int32(avaliablePosition.X), int32(avaliablePosition.Y), fontSize, rl.White)
+		}, float32(rl.MeasureText(textContet, fontSize)), float32(fontSize)
 	}
 }
 
-func PropertiesPanel(rect rl.Rectangle) {
-	DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
+func PropertiesPanel() lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
 
-	if selectedLayer == nil {
-		return
+		rect.X += 12
+		rect.Y += 12
+		rect.Width -= 24
+		rect.Height -= 24
+
+		return func() {
+			if selectedLayer == nil {
+				return
+			}
+
+			selectedLayer.DrawControls(&ui, rect, c)
+		}, 0, 0
 	}
-
-	rect.X += 12
-	rect.Y += 12
-	rect.Width -= 24
-	rect.Height -= 24
-
-	selectedLayer.DrawControls(&ui, rect, c)
 }

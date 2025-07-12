@@ -70,13 +70,13 @@ func (r *Rectangle) DrawHighlight(ui lib.UIStruct, comp components.Components) {
 }
 
 func RectangleDimensionsText(rect rl.Rectangle) lib.Component {
-	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
+	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
 		textContent := strconv.Itoa(int(rect.Width)) + " x " + strconv.Itoa(int(rect.Height))
 		fontSize := 10
 
 		return func() {
 			rl.DrawText(textContent, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
-		}, rl.NewRectangle(avaliablePosition.X, avaliablePosition.Y, float32(rl.MeasureText(textContent, int32(fontSize))), float32(fontSize))
+		}, float32(rl.MeasureText(textContent, int32(fontSize))), float32(fontSize)
 	}
 }
 
@@ -99,28 +99,28 @@ func (r *Rectangle) DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool 
 // -----------
 
 func (r *Rectangle) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
-	layout := NewPanelLayout(rect)
-	layout.Add(r.Position.Controls(ui, rect, comp))
-	layout.Add(r.SizeControls(ui, rect, comp))
-	layout.Add(r.Color.Controls(ui, rect, comp))
-	layout.Draw()
+	NewPanelLayout(rect).
+		Add(r.Position.Controls(ui, comp)).
+		Add(r.SizeControls(ui, comp)).
+		Add(r.Color.Controls(ui, comp)).
+		Draw()
 }
 
-func (r *Rectangle) SizeControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) lib.Component {
-	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-		row, contrains := NewControlsLayout(avaliablePosition.X, avaliablePosition.Y, rect.Width)
-		row.Add(Label("Size"))
-		row.Add(r.SizeControlsInputs(ui, comp))
-		return row.Draw, contrains
+func (r *Rectangle) SizeControls(ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
+		row := NewControlsLayout(avaliablePosition).
+			Add(Label("Size")).
+			Add(r.SizeControlsInputs(ui, comp))
+		return row.Draw, 0, row.Size.Height
 	}
 }
 
-func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
-	return func(rect rl.Rectangle) {
-		row := InputsLayout(2, rect)
-		row.Add(r.Width.Input(ui, comp))
-		row.Add(r.Height.Input(ui, comp))
-		row.Draw()
+func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		row := InputsLayout(2, rect).
+			Add(r.Width.Input(ui, comp)).
+			Add(r.Height.Input(ui, comp))
+		return row.Draw, 0, row.Size.Height
 	}
 }
 
@@ -128,14 +128,15 @@ func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Compone
 // Timeline
 // -----------
 
-func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := layout.Timeline.Root(rect)
-		layout.Add(TimelinePanelTitle(r.Name))
+		layout := layout.Timeline.Root(rect).
+			Add(TimelinePanelTitle(r.Name, r, ui))
+
 		if r.Position.CanDrawTimeline() {
-			layout.Add(r.Position.Timeline(ui, comp))
+			r.Position.Timeline(layout, ui, comp)
 		}
 
-		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
+		return layout.Draw, layout.Size.Width, layout.Size.Height
 	}
 }

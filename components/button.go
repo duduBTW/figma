@@ -15,19 +15,18 @@ func (c *Components) Button(id string, position rl.Vector2, children []lib.Compo
 	buttonInstance := ButtonInstance{}
 	interactable := NewInteractable(id, c.ui)
 
-	padding := lib.Padding{}
-	padding.All(8)
-	layout := lib.NewLayout(lib.PublicLayouyt{
-		Padding:   padding,
-		Direction: lib.DIRECTION_ROW,
-		Gap:       8,
-	}, position)
+	layout := lib.
+		NewLayout().
+		Position(position).
+		Row().
+		Padding(lib.NewPadding().All(8)).
+		Gap(8)
 
 	for _, component := range children {
 		layout.Add(component)
 	}
 
-	containerRect := rl.NewRectangle(position.X, position.Y, layout.Size.Width, layout.Size.Height)
+	containerRect := rl.NewRectangle(position.X, position.Y, lib.Max(layout.Size.Width, 24), lib.Max(layout.Size.Height, 24))
 	clicked := interactable.Event(rl.GetMousePosition(), containerRect)
 	var containerBackgroundColor = rl.Purple
 	switch interactable.State() {

@@ -11,7 +11,7 @@ type Layer interface {
 	GetElement() *Element
 	DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool
 	DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components)
-	DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent
+	DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.Component
 	State() components.InteractableState
 	DrawHighlight(lib.UIStruct, components.Components)
 	Rect(int) rl.Rectangle

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/dudubtw/figma/components"
@@ -49,16 +48,12 @@ func Selection(canvas rl.Rectangle) {
 				}
 				angleRadians += math.Pi / 4
 				if angleRadians < math.Pi/2 {
-					fmt.Println("1")
 					direction = -1
 				} else if angleRadians < math.Pi {
-					fmt.Println("2")
 					direction = 1
 				} else if angleRadians < 3*math.Pi/2 {
-					fmt.Println("3")
 					direction = -1
 				} else {
-					fmt.Println("4")
 					direction = 1
 				}
 

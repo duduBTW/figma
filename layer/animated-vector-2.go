@@ -26,21 +26,21 @@ func NewAnimatedVector2(id string, x float32, y float32) AnimatedVector2 {
 	}
 }
 
-func (v2 *AnimatedVector2) Controls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) lib.Component {
-	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-		row, contrains := NewControlsLayout(rect.X, rect.Y, rect.Width)
+func (v2 *AnimatedVector2) Controls(ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
+		row := NewControlsLayout(avaliablePosition)
 		row.Add(Label("Position"))
 		row.Add(v2.Inputs(ui, comp))
-		return row.Draw, contrains
+		return row.Draw, 0, row.Size.Height
 	}
 }
 
-func (v2 *AnimatedVector2) Inputs(ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
-	return func(rect rl.Rectangle) {
+func (v2 *AnimatedVector2) Inputs(ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := InputsLayout(2, rect)
 		row.Add(v2.X.Input(ui, comp))
 		row.Add(v2.Y.Input(ui, comp))
-		row.Draw()
+		return row.Draw, 0, row.Size.Height
 	}
 }
 
@@ -48,19 +48,12 @@ func (v2 *AnimatedVector2) CanDrawTimeline() bool {
 	return v2.X.CanDrawTimeline() || v2.Y.CanDrawTimeline()
 }
 
-func (v2 *AnimatedVector2) Timeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
-	return comp.TimelineRow("Position", v2.TimelineInputs(ui, comp))
-}
-func (v2 *AnimatedVector2) TimelineInputs(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := TimelinePanelInputsLayout(rect)
-		if v2.X.CanDrawTimeline() {
-			layout.Add(v2.X.NewInput(ui, comp))
-		}
-		if v2.Y.CanDrawTimeline() {
-			layout.Add(v2.Y.NewInput(ui, comp))
-		}
+func (v2 *AnimatedVector2) Timeline(layout *lib.Layout, ui *lib.UIStruct, comp components.Components) {
+	if v2.X.CanDrawTimeline() {
+		layout.Add(comp.TimelineRow("Position x", v2.X.NewInput(ui, comp), v2.X.SortedKeyframes))
+	}
 
-		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
+	if v2.Y.CanDrawTimeline() {
+		layout.Add(comp.TimelineRow("Position y", v2.Y.NewInput(ui, comp), v2.Y.SortedKeyframes))
 	}
 }

@@ -17,7 +17,7 @@ type BoxProps struct {
 	Color        rl.Color
 	Children     []lib.Component
 	Direction    lib.Direction
-	Gap          int
+	Gap          float32
 }
 
 func (*Components) Box(props BoxProps) BoxInstance {
@@ -34,11 +34,13 @@ func (*Components) Box(props BoxProps) BoxInstance {
 	radiusPixels := maxF(0, borderRadius)
 
 	// padding
-	layout := lib.NewLayout(lib.PublicLayouyt{
-		Padding:   padding,
-		Direction: direction,
-		Gap:       gap,
-	}, rl.NewVector2(rect.X, rect.Y))
+	layout := lib.
+		NewLayout().
+		PositionRect(rect).
+		Direction(direction).
+		Padding(&padding).
+		Gap(gap)
+
 	for _, component := range children {
 		layout.Add(component)
 	}

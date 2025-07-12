@@ -5,7 +5,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func Text(text string, fontSize int32) lib.MixComponent {
+func Text(text string, fontSize int32) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		width := rl.MeasureText(text, fontSize)
 		return func() {

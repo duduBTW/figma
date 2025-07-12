@@ -1,5 +1,7 @@
 package lib
 
+import rl "github.com/gen2brain/raylib-go/raylib"
+
 type Tool uint8
 
 const (
@@ -27,6 +29,8 @@ type UIStruct struct {
 	SelectedTool Tool
 
 	TabOrder []string
+
+	FrameWidth float32
 }
 
 func NewUi() UIStruct {
@@ -55,4 +59,12 @@ func (ui *UIStruct) ResetTabOrder() {
 
 func (ui *UIStruct) TogglePlay() {
 	ui.IsPlaying = !ui.IsPlaying
+}
+
+func (ui *UIStruct) GetXTimelineFrame(timelineRect rl.Rectangle, frame float32) float32 {
+	if frame == 0 {
+		frame = float32(ui.SelectedFrame)
+	}
+
+	return timelineRect.X + ui.FrameWidth*frame + 1
 }

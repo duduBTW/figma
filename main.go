@@ -56,41 +56,26 @@ func main() {
 			ui.TogglePlay()
 		}
 
-		padding := lib.Padding{}
-		padding.All(PANEL_GAP)
-		bodyLayout := lib.NewMixLayout(lib.PublicMixLayouyt{
-			Direction: lib.DIRECTION_COLUMN,
-			Gap:       PANEL_GAP,
-			Padding:   padding,
-			InitialRect: lib.MixLayouytRect{
-				Position: rl.NewVector2(0, 0),
-				Width: lib.ContrainedSize{
-					Value: float32(rl.GetScreenWidth()),
-					Contrains: []lib.ChildSize{
-						{
-							SizeType: lib.SIZE_WEIGHT,
-							Value:    1,
-						},
-					},
-				},
-				Height: lib.ContrainedSize{
-					Value: float32(rl.GetScreenHeight()),
-					Contrains: []lib.ChildSize{
-						{
-							SizeType: lib.SIZE_WEIGHT,
-							Value:    1,
-						},
-						{
-							SizeType: lib.SIZE_ABSOLUTE,
-							Value:    BOTTOM_PANEL_HEIGHT,
-						},
-					},
-				},
-			},
-		})
-		bodyLayout.Add(UpperPart())
-		bodyLayout.Add(Timeline())
-		bodyLayout.Draw()
+		if ui.IsPlaying {
+			if visibleFrames[1] == ui.SelectedFrame {
+				ui.SelectedFrame = visibleFrames[0]
+			} else {
+				ui.SelectedFrame++
+			}
+		}
+
+		lib.NewLayout().
+			Position(rl.NewVector2(0, 0)).
+			Padding(lib.NewPadding().All(PANEL_GAP)).
+			Gap(PANEL_GAP).
+			Column().
+			Width(float32(rl.GetScreenWidth())).
+			Height(float32(rl.GetScreenHeight()),
+				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: BOTTOM_PANEL_HEIGHT}).
+			Add(UpperPart()).
+			Add(Timeline()).
+			Draw()
 
 		rl.EndDrawing()
 

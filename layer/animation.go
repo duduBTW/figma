@@ -78,65 +78,46 @@ func (animatedProp AnimatedProp) KeyFramePosition(selectedFrame int) float32 {
 	return prop
 }
 
-func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
-	return func(rect rl.Rectangle) {
-		layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
-			Contrains: rect,
-			Direction: lib.DIRECTION_ROW,
-			ChildrenSize: []lib.ChildSize{
-				{
-					SizeType: lib.SIZE_WEIGHT,
-					Value:    1,
-				},
-				{
-					SizeType: lib.SIZE_ABSOLUTE,
-					Value:    24,
-				},
-			},
-		})
-		layout.Add(InputEditableContent(animatedProp, ui, comp))
-		layout.Add(KeyFrameButton(animatedProp, ui, comp))
-		layout.Draw()
+func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		layout := lib.
+			NewLayout().
+			PositionRect(rect).
+			Row().
+			Width(rect.Width,
+				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 24}).
+			Add(InputEditableContent(animatedProp, ui, comp)).
+			Add(KeyFrameButton(animatedProp, ui, comp))
+		return layout.Draw, 0, layout.Size.Height
 	}
 }
-func (animatedProp *AnimatedProp) NewInput(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+func (animatedProp *AnimatedProp) NewInput(ui *lib.UIStruct, comp components.Components) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.NewMixLayout(lib.PublicMixLayouyt{
-			Direction: lib.DIRECTION_ROW,
-			InitialRect: lib.MixLayouytRect{
-				Position: rl.NewVector2(rect.X, rect.Y),
-				Width: lib.ContrainedSize{
-					Value: rect.Width,
-					Contrains: []lib.ChildSize{
-						{
-							SizeType: lib.SIZE_WEIGHT,
-							Value:    1,
-						},
-						{
-							SizeType: lib.SIZE_ABSOLUTE,
-							Value:    24,
-						},
-					},
-				},
-			},
-		})
-		layout.Add(NewInputEditableContent(animatedProp, ui, comp))
-		layout.Add(NewKeyFrameButton(animatedProp, ui, comp))
-		return layout.Draw, 0, layout.CurrentRect.Height
+		layout := lib.
+			NewLayout().
+			PositionRect(rect).
+			Row().
+			Width(rect.Width,
+				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 24}).
+			Add(NewInputEditableContent(animatedProp, ui, comp)).
+			Add(NewKeyFrameButton(animatedProp, ui, comp))
+		return layout.Draw, 0, layout.Size.Height
 	}
 }
 
-func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
-	return func(rect rl.Rectangle) {
+func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
 		button := comp.Button(animatedProp.Name, rl.NewVector2(rect.X, rect.Y), []lib.Component{})
 		if button.Clicked {
 			animatedProp.InsertKeyframe(float32(ui.SelectedFrame), animatedProp.Base)
 		}
-		button.Draw()
+		return button.Draw, 0, 0
 	}
 }
 
-func NewKeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+func NewKeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		button := comp.Button(animatedProp.Name, rl.NewVector2(rect.X, rect.Y), []lib.Component{})
 		if button.Clicked {
@@ -146,8 +127,8 @@ func NewKeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp compon
 	}
 }
 
-func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.ContrainedComponent {
-	return func(rect rl.Rectangle) {
+func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
 		inputValue := animatedProp.inputValue
 		updateValue := animatedProp.KeyFramePosition(ui.SelectedFrame)
 		if inputValue == empty {
@@ -162,7 +143,6 @@ func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp com
 			Value:      inputValue,
 			MousePoint: rl.GetMousePosition(),
 			Ui:         ui,
-			// LeftIndicator: rune(key[0]),
 		})
 
 		if input.IsFocusing {
@@ -190,11 +170,11 @@ func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp com
 
 		}
 
-		input.Draw()
+		return input.Draw, 0, input.Rect.Height
 	}
 }
 
-func NewInputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+func NewInputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		inputValue := animatedProp.inputValue
 		updateValue := animatedProp.KeyFramePosition(ui.SelectedFrame)
@@ -245,12 +225,30 @@ func (animatedProp *AnimatedProp) CanDrawTimeline() bool {
 	return len(animatedProp.SortedKeyframes) > 0
 }
 
-func (animatedProp *AnimatedProp) TimelineFrames() lib.MixComponent {
+func (animatedProp *AnimatedProp) TimelineFrames(ui *lib.UIStruct) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		const height = 24
 		var draw = func() {
 			y := int32(rect.Y + (height / 2))
-			rl.DrawLine(rect.ToInt32().X, y, rect.ToInt32().X+rect.ToInt32().Width, y, rl.NewColor(68, 68, 68, 255))
+			rl.DrawLine(rect.ToInt32().X, y, rect.ToInt32().X+rect.ToInt32().Width, y, rl.Blue)
+
+			keyframes := animatedProp.SortedKeyframes
+			if len(keyframes) > 0 {
+				for _, keyframe := range keyframes {
+					x := ui.GetXTimelineFrame(rect, keyframe[0])
+					keyframeRect := rl.NewRectangle(x, float32(y), 10, 10)
+					rl.DrawRectanglePro(
+						keyframeRect,        // A 10×20 rectangle
+						rl.NewVector2(5, 5), // Center of the rectangle
+						45,
+						rl.Blue,
+					)
+
+					// if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.NewRectangle(keyframeRect.X-5, keyframeRect.Y-5, keyframeRect.Width, keyframeRect.Height)) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+					// 	// clicked
+					// }
+				}
+			}
 		}
 
 		return draw, 0, height

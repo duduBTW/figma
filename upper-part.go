@@ -6,51 +6,49 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func UpperPart() lib.MixComponent {
+func UpperPart() lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.NewConstrainedLayout(lib.ContrainedLayout{
-			Direction: lib.DIRECTION_ROW,
-			Gap:       PANEL_GAP,
-			Contrains: rect,
-			ChildrenSize: []lib.ChildSize{
-				{
-					SizeType: lib.SIZE_WEIGHT,
-					Value:    1,
-				},
-				{
-					SizeType: lib.SIZE_ABSOLUTE,
-					Value:    SIDE_PANEL_WIDTH,
-				},
-			},
-		})
-		layout.Add(Canvas)
-		layout.Add(RightPart)
+		layout := lib.
+			NewLayout().
+			PositionRect(rect).
+			Row().
+			Gap(PANEL_GAP).
+			Width(rect.Width,
+				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: SIDE_PANEL_WIDTH}).
+			Height(rect.Height).
+			Add(Canvas()).
+			Add(RightPart())
 		return layout.Draw, 0, 0
 	}
 }
 
-func Canvas(rect rl.Rectangle) {
-	rl.BeginMode2D(camera)
-	intT := rect.ToInt32()
-	rl.BeginScissorMode(intT.X, intT.Y, intT.Width, intT.Height)
+func Canvas() lib.Component {
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		return func() {
+			rl.BeginMode2D(camera)
+			intT := rect.ToInt32()
+			rl.BeginScissorMode(intT.X, intT.Y, intT.Width, intT.Height)
 
-	CanvasContent(rect)
+			CanvasContent(rect)
 
-	switch ui.SelectedTool {
-	case lib.ToolSelection:
-		Selection(rect)
-	case lib.ToolRectangle:
-		RectangleTool(rect)
-	case lib.ToolText:
-		TextTool(rect)
+			switch ui.SelectedTool {
+			case lib.ToolSelection:
+				Selection(rect)
+			case lib.ToolRectangle:
+				RectangleTool(rect)
+			case lib.ToolText:
+				TextTool(rect)
+			}
+
+			if selectedLayer != nil {
+				selectedLayer.DrawHighlight(ui, c)
+			}
+
+			rl.EndScissorMode()
+			rl.EndMode2D()
+		}, 0, 0
 	}
-
-	if selectedLayer != nil {
-		selectedLayer.DrawHighlight(ui, c)
-	}
-
-	rl.EndScissorMode()
-	rl.EndMode2D()
 }
 
 func CanvasContent(rect rl.Rectangle) {

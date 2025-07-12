@@ -72,19 +72,19 @@ func (t *Text) Rect(selectedFrame int) rl.Rectangle {
 // -----------
 
 func (t *Text) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
-	layout := NewPanelLayout(rect)
-	layout.Add(t.Position.Controls(ui, rect, comp))
-	layout.Add(t.FontSizeControls(ui, rect, comp))
-	layout.Add(t.Color.Controls(ui, rect, comp))
-	layout.Draw()
+	NewPanelLayout(rect).
+		Add(t.Position.Controls(ui, comp)).
+		Add(t.FontSizeControls(ui, comp)).
+		Add(t.Color.Controls(ui, comp)).
+		Draw()
 }
 
-func (t *Text) FontSizeControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) lib.Component {
-	return func(avaliablePosition rl.Vector2) (func(), rl.Rectangle) {
-		row, contrains := NewControlsLayout(avaliablePosition.X, avaliablePosition.Y, rect.Width)
-		row.Add(Label("Font size"))
-		row.Add(t.FontSize.Input(ui, comp))
-		return row.Draw, contrains
+func (t *Text) FontSizeControls(ui *lib.UIStruct, comp components.Components) lib.Component {
+	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
+		row := NewControlsLayout(avaliablePosition).
+			Add(Label("Font size")).
+			Add(t.FontSize.Input(ui, comp))
+		return row.Draw, 0, row.Size.Height
 	}
 }
 
@@ -92,18 +92,18 @@ func (t *Text) FontSizeControls(ui *lib.UIStruct, rect rl.Rectangle, comp compon
 // Timeline
 // -----------
 
-func (t *Text) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.MixComponent {
+func (t *Text) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := layout.Timeline.Root(rect)
-		layout.Add(TimelinePanelTitle(t.Name))
+		layout.Add(TimelinePanelTitle(t.Name, t, ui))
 		if t.Position.CanDrawTimeline() {
-			layout.Add(t.Position.Timeline(ui, comp))
+			t.Position.Timeline(layout, ui, comp)
 		}
 
 		if t.FontSize.CanDrawTimeline() {
-			layout.Add(comp.TimelineRow("Font size", t.FontSize.NewInput(ui, comp)))
+			layout.Add(comp.TimelineRow("Font size", t.FontSize.NewInput(ui, comp), t.FontSize.SortedKeyframes))
 		}
 
-		return layout.Draw, layout.CurrentRect.Width, layout.CurrentRect.Height
+		return layout.Draw, layout.Size.Width, layout.Size.Height
 	}
 }
