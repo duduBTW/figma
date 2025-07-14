@@ -12,7 +12,6 @@ import (
 
 func Timeline() lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
 		layout := lib.NewLayout().PositionRect(rect).Column().Padding(lib.NewPadding().All(12)).Width(rect.Width).Height(rect.Height,
 			lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 32},
 			lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 16},
@@ -21,7 +20,10 @@ func Timeline() lib.Component {
 			Add(TimelineHeader()).
 			Add(TimelineBotttomPart())
 
-		return layout.Draw, 0, 0
+		return func() {
+			DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
+			layout.Draw()
+		}, 0, 0
 	}
 }
 

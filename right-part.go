@@ -30,7 +30,6 @@ var tools = []lib.Tool{
 
 func ToolDock() lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
 		layout := lib.
 			NewLayout().
 			PositionRect(rect).
@@ -42,7 +41,10 @@ func ToolDock() lib.Component {
 			layout.Add(ToolButton(tool))
 		}
 
-		return layout.Draw, 0, 0
+		return func() {
+			DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
+			layout.Draw()
+		}, 0, 0
 	}
 }
 
@@ -76,19 +78,14 @@ func Content(tool lib.Tool) lib.Component {
 
 func PropertiesPanel() lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
-
-		rect.X += 12
-		rect.Y += 12
-		rect.Width -= 24
-		rect.Height -= 24
 
 		return func() {
+			DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
 			if selectedLayer == nil {
 				return
 			}
 
-			selectedLayer.DrawControls(&ui, rect, c)
+			selectedLayer.DrawControls(&ui, rl.NewRectangle(rect.X+12, rect.Y+12, rect.Width-24, rect.Height-24), c)
 		}, 0, 0
 	}
 }
