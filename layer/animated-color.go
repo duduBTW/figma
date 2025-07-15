@@ -37,22 +37,22 @@ func (a *AnimatedColor) Get(selectedFrame int) rl.Color {
 	return rl.NewColor(red, green, blue, alpha)
 }
 
-func (a *AnimatedColor) Controls(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (a *AnimatedColor) Controls(ui *lib.UIStruct, comp components.Components, layer Layer) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := NewControlsLayout(rect).
 			Add(Label("Color")).
-			Add(a.ColorControlsInputs(ui, comp))
+			Add(a.ColorControlsInputs(ui, comp, layer))
 		return row.Draw, 0, row.Size.Height
 	}
 }
 
-func (a *AnimatedColor) ColorControlsInputs(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (a *AnimatedColor) ColorControlsInputs(ui *lib.UIStruct, comp components.Components, layer Layer) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := InputsLayout(4, rect).
-			Add(a.red.Input(ui, comp)).
-			Add(a.green.Input(ui, comp)).
-			Add(a.blue.Input(ui, comp)).
-			Add(a.alpha.Input(ui, comp))
+			Add(a.red.Input(ui, comp, layer, "")).
+			Add(a.green.Input(ui, comp, layer, "")).
+			Add(a.blue.Input(ui, comp, layer, "")).
+			Add(a.alpha.Input(ui, comp, layer, ""))
 		return row.Draw, 0, 0
 	}
 }

@@ -10,7 +10,14 @@ const (
 	ToolText      Tool = 2
 )
 
+type SelectedKeyframe struct {
+	LayerId  string
+	Keyframe [2]float32
+}
+
 type UIStruct struct {
+	SelectedKeyframe SelectedKeyframe
+
 	FocusedId string
 	ActiveId  string
 	HotId     string
@@ -30,7 +37,8 @@ type UIStruct struct {
 
 	TabOrder []string
 
-	FrameWidth float32
+	FrameWidth     float32
+	TimelineScroll float32
 }
 
 func NewUi() UIStruct {
@@ -62,9 +70,9 @@ func (ui *UIStruct) TogglePlay() {
 }
 
 func (ui *UIStruct) GetXTimelineFrame(timelineRect rl.Rectangle, frame float32) float32 {
-	if frame == 0 {
-		frame = float32(ui.SelectedFrame)
-	}
-
 	return timelineRect.X + ui.FrameWidth*frame + 1
+}
+func (ui *UIStruct) ScrollTimeline() {
+	var scrollSpeed float32 = 10
+	ui.TimelineScroll -= rl.GetMouseWheelMove() * scrollSpeed
 }

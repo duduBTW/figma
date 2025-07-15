@@ -24,6 +24,7 @@ func NewAnimatedProp(defaultValue float32, name string) AnimatedProp {
 }
 
 func (prop *AnimatedProp) InsertKeyframe(key, value float32) {
+	fmt.Println("Inserting keyframe!", key, value, prop)
 	prop.SortedKeyframes = append(prop.SortedKeyframes, [2]float32{key, value})
 	sort.Slice(prop.SortedKeyframes, func(i, j int) bool {
 		return prop.SortedKeyframes[i][0] < prop.SortedKeyframes[j][0]
@@ -78,7 +79,7 @@ func (animatedProp AnimatedProp) KeyFramePosition(selectedFrame int) float32 {
 	return prop
 }
 
-func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Components, layer Layer, prefix string) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := lib.
 			NewLayout().
@@ -87,29 +88,15 @@ func (animatedProp *AnimatedProp) Input(ui *lib.UIStruct, comp components.Compon
 			Width(rect.Width,
 				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
 				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 24}).
-			Add(InputEditableContent(animatedProp, ui, comp)).
-			Add(KeyFrameButton(animatedProp, ui, comp))
-		return layout.Draw, 0, layout.Size.Height
-	}
-}
-func (animatedProp *AnimatedProp) NewInput(ui *lib.UIStruct, comp components.Components) lib.Component {
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.
-			NewLayout().
-			PositionRect(rect).
-			Row().
-			Width(rect.Width,
-				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
-				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 24}).
-			Add(NewInputEditableContent(animatedProp, ui, comp)).
-			Add(NewKeyFrameButton(animatedProp, ui, comp))
+			Add(InputEditableContent(animatedProp, ui, comp, layer, prefix)).
+			Add(KeyFrameButton(animatedProp, ui, comp, layer, prefix))
 		return layout.Draw, 0, layout.Size.Height
 	}
 }
 
-func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
+func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components, layer Layer, prefix string) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		button := comp.Button(animatedProp.Name, rl.NewVector2(rect.X, rect.Y), []lib.Component{})
+		button := comp.Button(layer.GetName()+animatedProp.Name+prefix, rl.NewVector2(rect.X, rect.Y), []lib.Component{})
 		if button.Clicked {
 			animatedProp.InsertKeyframe(float32(ui.SelectedFrame), animatedProp.Base)
 		}
@@ -117,28 +104,18 @@ func KeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp component
 	}
 }
 
-func NewKeyFrameButton(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		button := comp.Button(animatedProp.Name, rl.NewVector2(rect.X, rect.Y), []lib.Component{})
-		if button.Clicked {
-			animatedProp.InsertKeyframe(float32(ui.SelectedFrame), animatedProp.Base)
-		}
-		return button.Draw, button.Rect.Width, button.Rect.Height
-	}
-}
-
-func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
+func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components, layer Layer, prefix string) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		inputValue := animatedProp.inputValue
-		updateValue := animatedProp.KeyFramePosition(ui.SelectedFrame)
+		updateValue := fmt.Sprint(animatedProp.KeyFramePosition(ui.SelectedFrame))
 		if inputValue == empty {
-			inputValue = strconv.Itoa(int(updateValue))
+			inputValue = updateValue
 		}
 
 		input := comp.Input(components.InputProps{
 			X:          rect.X,
 			Y:          rect.Y,
-			Id:         animatedProp.Name,
+			Id:         layer.GetName() + animatedProp.Name + prefix,
 			Width:      rect.Width,
 			Value:      inputValue,
 			MousePoint: rl.GetMousePosition(),
@@ -156,59 +133,13 @@ func InputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp com
 		if input.IsBluring || input.HasSubmitted {
 			input.Blur(ui)
 
-			if animatedProp.inputValue == "" {
+			if animatedProp.inputValue == "" || inputValue == updateValue {
 				animatedProp.inputValue = empty
 			} else {
+				fmt.Println(inputValue, updateValue)
 				var newIntValue, err = strconv.ParseFloat(animatedProp.inputValue, 32)
 				if err != nil {
-					animatedProp.inputValue = fmt.Sprint(updateValue)
-				}
-
-				animatedProp.Set(float32(newIntValue), ui)
-				animatedProp.inputValue = empty
-			}
-
-		}
-
-		return input.Draw, 0, input.Rect.Height
-	}
-}
-
-func NewInputEditableContent(animatedProp *AnimatedProp, ui *lib.UIStruct, comp components.Components) lib.Component {
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		inputValue := animatedProp.inputValue
-		updateValue := animatedProp.KeyFramePosition(ui.SelectedFrame)
-		if inputValue == empty {
-			inputValue = strconv.Itoa(int(updateValue))
-		}
-
-		input := comp.Input(components.InputProps{
-			X:          rect.X,
-			Y:          rect.Y,
-			Id:         animatedProp.Name,
-			Width:      rect.Width,
-			Value:      inputValue,
-			MousePoint: rl.GetMousePosition(),
-			Ui:         ui,
-		})
-
-		if input.IsFocusing {
-			animatedProp.inputValue = input.Value
-		}
-
-		if input.State == components.STATE_ACTIVE {
-			animatedProp.inputValue = input.Value
-		}
-
-		if input.IsBluring || input.HasSubmitted {
-			input.Blur(ui)
-
-			if animatedProp.inputValue == "" {
-				animatedProp.inputValue = empty
-			} else {
-				var newIntValue, err = strconv.ParseFloat(animatedProp.inputValue, 32)
-				if err != nil {
-					animatedProp.inputValue = fmt.Sprint(updateValue)
+					animatedProp.inputValue = updateValue
 				}
 
 				animatedProp.Set(float32(newIntValue), ui)

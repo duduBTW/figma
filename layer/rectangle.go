@@ -100,9 +100,9 @@ func (r *Rectangle) DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool 
 
 func (r *Rectangle) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
 	NewPanelLayout(rect).
-		Add(r.Position.Controls(ui, comp)).
+		Add(r.Position.Controls(ui, comp, r)).
 		Add(r.SizeControls(ui, comp)).
-		Add(r.Color.Controls(ui, comp)).
+		Add(r.Color.Controls(ui, comp, r)).
 		Draw()
 }
 
@@ -118,8 +118,8 @@ func (r *Rectangle) SizeControls(ui *lib.UIStruct, comp components.Components) l
 func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Components) lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := InputsLayout(2, rect).
-			Add(r.Width.Input(ui, comp)).
-			Add(r.Height.Input(ui, comp))
+			Add(r.Width.Input(ui, comp, r, "")).
+			Add(r.Height.Input(ui, comp, r, ""))
 		return row.Draw, 0, row.Size.Height
 	}
 }
@@ -133,8 +133,16 @@ func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, comp components.Components) l
 		layout := layout.Timeline.Root(rect).
 			Add(TimelinePanelTitle(r.Name, r, ui))
 
+		prefix := "timeline"
 		if r.Position.CanDrawTimeline() {
-			r.Position.Timeline(layout, ui, comp)
+			r.Position.Timeline(layout, ui, comp, r, prefix)
+		}
+
+		if r.Width.CanDrawTimeline() {
+			layout.Add(comp.TimelineRow("Width", r.Width.Input(ui, comp, r, prefix), r.Width.SortedKeyframes))
+		}
+		if r.Height.CanDrawTimeline() {
+			layout.Add(comp.TimelineRow("Height", r.Height.Input(ui, comp, r, prefix), r.Height.SortedKeyframes))
 		}
 
 		return layout.Draw, layout.Size.Width, layout.Size.Height

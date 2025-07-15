@@ -9,10 +9,18 @@ type Components struct {
 	ui *lib.UIStruct
 
 	inputStates map[string]InteractableState
+	inputNames  map[string]bool
 }
 
+func (c *Components) FrameReset() {
+	c.inputNames = map[string]bool{}
+}
 func NewComponents(ui *lib.UIStruct) Components {
-	return Components{ui: ui, inputStates: map[string]InteractableState{}}
+	return Components{
+		ui:          ui,
+		inputStates: map[string]InteractableState{},
+		inputNames:  map[string]bool{},
+	}
 }
 
 // Helper function to find the minimum of two float32 values

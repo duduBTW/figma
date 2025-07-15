@@ -48,7 +48,12 @@ func main() {
 	// IconTexture = LoadSVGAsTexture("D:\\Peronal\\figma\\assets\\icons\\type.svg", 16, 16)
 
 	for !rl.WindowShouldClose() {
+		// for _, layer := range layers {
+		// 	fmt.Println(layer)
+		// }
+
 		ui.ResetTabOrder()
+		c.FrameReset()
 
 		rl.DrawRectangle(0, 0, int32(rl.GetScreenWidth()), int32(rl.GetScreenHeight()), rl.Black)
 

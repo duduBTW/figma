@@ -73,9 +73,9 @@ func (t *Text) Rect(selectedFrame int) rl.Rectangle {
 
 func (t *Text) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
 	NewPanelLayout(rect).
-		Add(t.Position.Controls(ui, comp)).
+		Add(t.Position.Controls(ui, comp, t)).
 		Add(t.FontSizeControls(ui, comp)).
-		Add(t.Color.Controls(ui, comp)).
+		Add(t.Color.Controls(ui, comp, t)).
 		Draw()
 }
 
@@ -83,7 +83,7 @@ func (t *Text) FontSizeControls(ui *lib.UIStruct, comp components.Components) li
 	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
 		row := NewControlsLayout(avaliablePosition).
 			Add(Label("Font size")).
-			Add(t.FontSize.Input(ui, comp))
+			Add(t.FontSize.Input(ui, comp, t, ""))
 		return row.Draw, 0, row.Size.Height
 	}
 }
@@ -96,12 +96,13 @@ func (t *Text) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.Co
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := layout.Timeline.Root(rect)
 		layout.Add(TimelinePanelTitle(t.Name, t, ui))
+		prefix := "timeline"
 		if t.Position.CanDrawTimeline() {
-			t.Position.Timeline(layout, ui, comp)
+			t.Position.Timeline(layout, ui, comp, t, prefix)
 		}
 
 		if t.FontSize.CanDrawTimeline() {
-			layout.Add(comp.TimelineRow("Font size", t.FontSize.NewInput(ui, comp), t.FontSize.SortedKeyframes))
+			layout.Add(comp.TimelineRow("Font size", t.FontSize.Input(ui, comp, t, prefix), t.FontSize.SortedKeyframes))
 		}
 
 		return layout.Draw, layout.Size.Width, layout.Size.Height

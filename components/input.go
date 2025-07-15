@@ -33,6 +33,12 @@ const INPUT_HEIGHT float32 = 24
 const INDICATOR_FONT_SIZE int32 = 14
 
 func (c *Components) Input(props InputProps) InputInstance {
+	if c.inputNames[props.Id] {
+		fmt.Println("Input with the same id declared: ", props.Id)
+		panic(1)
+	}
+
+	c.inputNames[props.Id] = true
 	c.ui.TabOrder = append(c.ui.TabOrder, props.Id)
 	inputInstance := InputInstance{}
 	// leftIndicator := string(props.LeftIndicator)

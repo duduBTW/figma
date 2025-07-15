@@ -12,10 +12,16 @@ import (
 
 func Timeline() lib.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.NewLayout().PositionRect(rect).Column().Padding(lib.NewPadding().All(12)).Width(rect.Width).Height(rect.Height,
-			lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 32},
-			lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 16},
-			lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1}).
+		layout := lib.
+			NewLayout().
+			PositionRect(rect).
+			Column().
+			Padding(lib.NewPadding().All(12)).
+			Width(rect.Width).
+			Height(rect.Height,
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 32},
+				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 16},
+				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1}).
 			Add(TimelineUpperPart()).
 			Add(TimelineHeader()).
 			Add(TimelineBotttomPart())
@@ -93,12 +99,14 @@ func TimelineFrameController() lib.Component {
 
 func TimelineBotttomPart() lib.Component {
 	return func(current rl.Rectangle) (func(), float32, float32) {
-		a := current
-		a.X += 280 + 12
-		a.Width -= 280 + 12
+		ui.ScrollTimeline()
+
+		position := current
+		position.Y -= ui.TimelineScroll
+
 		layout := lib.
 			NewLayout().
-			PositionRect(current).
+			PositionRect(position).
 			Column().
 			Gap(16).
 			Width(current.Width)
@@ -108,13 +116,18 @@ func TimelineBotttomPart() lib.Component {
 		}
 
 		return func() {
+			framesRect := rl.NewRectangle(current.X+280+12, current.Y, current.Width-280+12, current.Height)
+			rl.DrawRectanglePro(framesRect, rl.NewVector2(0, 0), 0, rl.Fade(rl.Black, 0.4))
+
+			rl.BeginScissorMode(current.ToInt32().X, current.ToInt32().Y, current.ToInt32().Width, current.ToInt32().Height)
 			layout.Draw()
-			rl.DrawRectanglePro(a, rl.NewVector2(0, 0), 0, rl.Fade(rl.Black, 0.4))
-			x := ui.GetXTimelineFrame(a, 0)
-			rl.DrawLine(int32(x), a.ToInt32().Y-10, int32(x), a.ToInt32().Y+a.ToInt32().Height, rl.Blue)
+			rl.EndScissorMode()
+
+			x := ui.GetXTimelineFrame(framesRect, float32(ui.SelectedFrame))
+			rl.DrawLine(int32(x), framesRect.ToInt32().Y-10, int32(x), framesRect.ToInt32().Y+framesRect.ToInt32().Height, rl.Blue)
 			rl.DrawRectanglePro(
-				rl.NewRectangle(x, a.Y-15, 11, 11), // A 10×20 rectangle
-				rl.NewVector2(5, 5),                // Center of the rectangle
+				rl.NewRectangle(x, framesRect.Y-15, 11, 11), // A 10×20 rectangle
+				rl.NewVector2(5, 5),                         // Center of the rectangle
 				45,
 				rl.Blue,
 			)

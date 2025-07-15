@@ -41,6 +41,9 @@ func Canvas() lib.Component {
 				TextTool(rect)
 			}
 
+			// if drawHighlight != nil {
+			// 	drawHighlight(ui, c)
+			// }
 			if selectedLayer != nil {
 				selectedLayer.DrawHighlight(ui, c)
 			}

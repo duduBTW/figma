@@ -5,6 +5,7 @@ go 1.23.4
 require github.com/gen2brain/raylib-go/raylib v0.0.0-20250409052854-a4292f0f0412
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/ebitengine/purego v0.8.2 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect

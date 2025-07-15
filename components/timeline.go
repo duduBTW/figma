@@ -47,9 +47,9 @@ func (c *Components) TimelineFrames(ui *lib.UIStruct, keyframes [][2]float32) li
 						rl.Blue,
 					)
 
-					// if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.NewRectangle(keyframeRect.X-5, keyframeRect.Y-5, keyframeRect.Width, keyframeRect.Height)) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-					// 	// clicked
-					// }
+					if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.NewRectangle(keyframeRect.X-5, keyframeRect.Y-5, keyframeRect.Width, keyframeRect.Height)) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+						// ui.SelectedKeyframe = lib.SelectedKeyframe{LayerId: selectedLayer.GetElement().Id, Keyframe: keyframe}
+					}
 				}
 			}
 		}, 0, 0

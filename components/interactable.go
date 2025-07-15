@@ -41,6 +41,12 @@ func (interactable *Interactable) Event(mousePoint rl.Vector2, rect rl.Rectangle
 		return false
 	}
 
+	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) && isInside {
+		ui.ActiveId = id
+		ui.HotId = ""
+		return false
+	}
+
 	// Other element is being interacted with
 	if (ui.ActiveId != "" && !isActive) ||
 		(ui.HotId != "" && !isInside) {
@@ -53,17 +59,7 @@ func (interactable *Interactable) Event(mousePoint rl.Vector2, rect rl.Rectangle
 		return isInside
 	}
 
-	if isActive {
-		return false
-	}
-
-	if !isInside {
-		return false
-	}
-
-	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-		ui.ActiveId = id
-		ui.HotId = ""
+	if isActive || !isInside {
 		return false
 	}
 
