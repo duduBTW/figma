@@ -4,24 +4,25 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/components"
+	"github.com/dudubtw/figma/fmath"
 	"github.com/dudubtw/figma/layout"
-	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func Timeline() lib.Component {
+func Timeline() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.
+		layout := app.
 			NewLayout().
 			PositionRect(rect).
 			Column().
-			Padding(lib.NewPadding().All(12)).
+			Padding(app.NewPadding().All(12)).
 			Width(rect.Width).
 			Height(rect.Height,
-				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 32},
-				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: 16},
-				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1}).
+				app.ChildSize{SizeType: app.SIZE_ABSOLUTE, Value: 32},
+				app.ChildSize{SizeType: app.SIZE_ABSOLUTE, Value: 16},
+				app.ChildSize{SizeType: app.SIZE_WEIGHT, Value: 1}).
 			Add(TimelineUpperPart()).
 			Add(TimelineHeader()).
 			Add(TimelineBotttomPart())
@@ -33,7 +34,7 @@ func Timeline() lib.Component {
 	}
 }
 
-func TimelineUpperPart() lib.Component {
+func TimelineUpperPart() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := layout.Timeline.Row(rect)
 		row.Add(TimelineControls())
@@ -42,9 +43,7 @@ func TimelineUpperPart() lib.Component {
 	}
 }
 
-var visibleFrames = [2]int{0, 240}
-
-func TimelineHeader() lib.Component {
+func TimelineHeader() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := layout.Timeline.Row(rect)
 		row.Add(Blank())
@@ -53,24 +52,26 @@ func TimelineHeader() lib.Component {
 	}
 }
 
-func Blank() lib.Component {
+func Blank() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		return func() {}, 0, 0
 	}
 }
 
-func TimelineFrameController() lib.Component {
+// TODO
+// FIX THIS!!
+func TimelineFrameController() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		totalFrames := int(float32((visibleFrames[1] - visibleFrames[0])) * 0.1)
-		totalFrames2 := visibleFrames[1] - visibleFrames[0]
+		totalFrames := int(float32((app.Apk.VisibleFrames[1] - app.Apk.VisibleFrames[0])) * 0.1)
+		totalFrames2 := app.Apk.VisibleFrames[1] - app.Apk.VisibleFrames[0]
 
 		frameWidth := rect.Width * 0.1
-		ui.FrameWidth = rect.Width / float32(totalFrames2)
+		app.Apk.FrameWidth = rect.Width / float32(totalFrames2)
 
 		smallestMousePos := math.MaxFloat64
 		smallestFrame := 0
 		for i := 0; i <= totalFrames2; i++ {
-			var x int32 = int32(rect.X + ui.FrameWidth*float32(i) + 1)
+			var x int32 = int32(rect.X + app.Apk.FrameWidth*float32(i) + 1)
 			mousePos := math.Abs(float64(rl.GetMousePosition().X) - float64(x))
 			if mousePos < smallestMousePos {
 				smallestMousePos = mousePos
@@ -80,10 +81,10 @@ func TimelineFrameController() lib.Component {
 
 		rect2 := rect
 		rect2.Height = 16
-		interactable := components.NewInteractable("timeline-frame-controller", &ui)
+		interactable := app.NewInteractable("timeline-frame-controller")
 		if interactable.Event(rl.GetMousePosition(), rect2) ||
-			interactable.State() == components.STATE_ACTIVE {
-			ui.SelectedFrame = smallestFrame
+			interactable.State() == app.STATE_ACTIVE {
+			app.Apk.SelectedFrame = smallestFrame
 		}
 
 		return func() {
@@ -91,39 +92,39 @@ func TimelineFrameController() lib.Component {
 				var x int32 = int32(rect.X + frameWidth*float32(i) + 1)
 				label := strconv.Itoa(totalFrames*i) + "F"
 				var fontSize int32 = 10
-				rl.DrawText(label, lib.MinInt32((rect.ToInt32().X+rect.ToInt32().Width)-rl.MeasureText(label, fontSize), x+4), rect.ToInt32().Y, fontSize, rl.White)
+				rl.DrawText(label, fmath.MinInt32((rect.ToInt32().X+rect.ToInt32().Width)-rl.MeasureText(label, fontSize), x+4), rect.ToInt32().Y, fontSize, rl.White)
 			}
 		}, 0, 0
 	}
 }
 
-func TimelineBotttomPart() lib.Component {
+func TimelineBotttomPart() app.Component {
 	return func(current rl.Rectangle) (func(), float32, float32) {
-		ui.ScrollTimeline()
+		app.Apk.ScrollTimeline()
 
 		position := current
-		position.Y -= ui.TimelineScroll
+		position.Y -= app.Apk.TimelineScroll
 
-		layout := lib.
+		layout := app.
 			NewLayout().
 			PositionRect(position).
 			Column().
 			Gap(16).
 			Width(current.Width)
 
-		for _, layer := range layers {
-			layout.Add(layer.DrawTimeline(&ui, c))
+		for _, layer := range app.Apk.Layers {
+			layout.Add(layer.DrawTimeline())
 		}
 
 		return func() {
-			framesRect := rl.NewRectangle(current.X+280+12, current.Y, current.Width-280+12, current.Height)
+			framesRect := rl.NewRectangle(current.X+280+12, current.Y, current.Width-280-12, current.Height)
 			rl.DrawRectanglePro(framesRect, rl.NewVector2(0, 0), 0, rl.Fade(rl.Black, 0.4))
 
 			rl.BeginScissorMode(current.ToInt32().X, current.ToInt32().Y, current.ToInt32().Width, current.ToInt32().Height)
 			layout.Draw()
 			rl.EndScissorMode()
 
-			x := ui.GetXTimelineFrame(framesRect, float32(ui.SelectedFrame))
+			x := app.Apk.GetXTimelineFrame(framesRect, float32(app.Apk.SelectedFrame))
 			rl.DrawLine(int32(x), framesRect.ToInt32().Y-10, int32(x), framesRect.ToInt32().Y+framesRect.ToInt32().Height, rl.Blue)
 			rl.DrawRectanglePro(
 				rl.NewRectangle(x, framesRect.Y-15, 11, 11), // A 10×20 rectangle
@@ -135,9 +136,9 @@ func TimelineBotttomPart() lib.Component {
 	}
 }
 
-func TimelineControls() lib.Component {
+func TimelineControls() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		buttonListLayout := lib.
+		buttonListLayout := app.
 			NewLayout().
 			PositionRect(rect).
 			Row().
@@ -146,12 +147,12 @@ func TimelineControls() lib.Component {
 		return buttonListLayout.Draw, buttonListLayout.Size.Width, buttonListLayout.Size.Height
 	}
 }
-func PlayButton() lib.Component {
+func PlayButton() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		button := c.Button("play-button", rl.NewVector2(rect.X, rect.Y), []lib.Component{})
+		button := components.Button("play-button", rl.NewVector2(rect.X, rect.Y), []app.Component{})
 
 		if button.Clicked {
-			ui.TogglePlay()
+			app.Apk.TogglePlay()
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height

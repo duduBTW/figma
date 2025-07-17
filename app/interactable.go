@@ -1,13 +1,11 @@
-package components
+package app
 
 import (
-	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Interactable struct {
 	id string
-	ui *lib.UIStruct
 }
 
 type InteractableState = int8
@@ -19,11 +17,10 @@ const (
 )
 
 func (interactable *Interactable) State() InteractableState {
-	ui := interactable.ui
 	switch interactable.id {
-	case ui.ActiveId:
+	case Apk.ActiveId:
 		return STATE_ACTIVE
-	case ui.HotId:
+	case Apk.HotId:
 		return STATE_HOT
 	default:
 		return STATE_INITIAL
@@ -31,31 +28,30 @@ func (interactable *Interactable) State() InteractableState {
 }
 
 func (interactable *Interactable) Event(mousePoint rl.Vector2, rect rl.Rectangle) bool {
-	ui := interactable.ui
 	id := interactable.id
-	isActive := id == ui.ActiveId
+	isActive := id == Apk.ActiveId
 	isInside := rl.CheckCollisionPointRec(mousePoint, rect)
 
-	if ui.HotId == id && !isInside {
-		ui.HotId = ""
+	if Apk.HotId == id && !isInside {
+		Apk.HotId = ""
 		return false
 	}
 
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) && isInside {
-		ui.ActiveId = id
-		ui.HotId = ""
+		Apk.ActiveId = id
+		Apk.HotId = ""
 		return false
 	}
 
 	// Other element is being interacted with
-	if (ui.ActiveId != "" && !isActive) ||
-		(ui.HotId != "" && !isInside) {
+	if (Apk.ActiveId != "" && !isActive) ||
+		(Apk.HotId != "" && !isInside) {
 		return false
 	}
 
 	if isActive && rl.IsMouseButtonUp(rl.MouseButtonLeft) {
-		ui.ActiveId = ""
-		ui.HotId = ""
+		Apk.ActiveId = ""
+		Apk.HotId = ""
 		return isInside
 	}
 
@@ -63,16 +59,15 @@ func (interactable *Interactable) Event(mousePoint rl.Vector2, rect rl.Rectangle
 		return false
 	}
 
-	if ui.HotId == "" {
-		ui.HotId = id
+	if Apk.HotId == "" {
+		Apk.HotId = id
 	}
 
 	return false
 }
 
-func NewInteractable(id string, ui *lib.UIStruct) Interactable {
+func NewInteractable(id string) Interactable {
 	return Interactable{
 		id: id,
-		ui: ui,
 	}
 }

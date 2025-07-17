@@ -3,7 +3,7 @@ package components
 import (
 	"fmt"
 
-	"github.com/dudubtw/figma/lib"
+	"github.com/dudubtw/figma/app"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -14,7 +14,7 @@ type InputInstance struct {
 	IsBluring    bool
 	IsFocusing   bool
 	HasSubmitted bool
-	State        InteractableState
+	State        app.InteractableState
 }
 
 type InputProps struct {
@@ -24,7 +24,6 @@ type InputProps struct {
 	Width       float32
 	Placeholder string
 	Value       string
-	Ui          *lib.UIStruct
 	MousePoint  rl.Vector2
 	// LeftIndicator rune
 }
@@ -32,14 +31,15 @@ type InputProps struct {
 const INPUT_HEIGHT float32 = 24
 const INDICATOR_FONT_SIZE int32 = 14
 
-func (c *Components) Input(props InputProps) InputInstance {
-	if c.inputNames[props.Id] {
+func Input(props InputProps) InputInstance {
+	c := app.Apk.Components
+	if c.InputNames[props.Id] {
 		fmt.Println("Input with the same id declared: ", props.Id)
 		panic(1)
 	}
 
-	c.inputNames[props.Id] = true
-	c.ui.TabOrder = append(c.ui.TabOrder, props.Id)
+	c.InputNames[props.Id] = true
+	app.Apk.State.TabOrder = append(app.Apk.State.TabOrder, props.Id)
 	inputInstance := InputInstance{}
 	// leftIndicator := string(props.LeftIndicator)
 	rect := rl.NewRectangle(props.X, props.Y, props.Width, INPUT_HEIGHT)
@@ -50,16 +50,16 @@ func (c *Components) Input(props InputProps) InputInstance {
 	state := InputState(props)
 
 	// on blur
-	inputInstance.IsBluring = state == STATE_INITIAL && c.inputStates[props.Id] == STATE_ACTIVE
+	inputInstance.IsBluring = state == app.STATE_INITIAL && c.InputStates[props.Id] == app.STATE_ACTIVE
 
 	// on focus
-	inputInstance.IsFocusing = state == STATE_ACTIVE && c.inputStates[props.Id] == STATE_INITIAL
+	inputInstance.IsFocusing = state == app.STATE_ACTIVE && c.InputStates[props.Id] == app.STATE_INITIAL
 
 	// on submit
-	inputInstance.HasSubmitted = state == STATE_ACTIVE && rl.IsKeyPressed(rl.KeyEnter)
+	inputInstance.HasSubmitted = state == app.STATE_ACTIVE && rl.IsKeyPressed(rl.KeyEnter)
 
 	// update global state
-	c.inputStates[props.Id] = state
+	c.InputStates[props.Id] = state
 
 	isEmpty := props.Value == ""
 	var fontSize int32 = 14
@@ -81,7 +81,7 @@ func (c *Components) Input(props InputProps) InputInstance {
 	inputInstance.Draw = func() {
 		DrawRectangleRoundedPixels(rect, 4, rl.NewColor(41, 41, 41, 255))
 
-		if isEmpty && state != STATE_ACTIVE {
+		if isEmpty && state != app.STATE_ACTIVE {
 			rl.DrawText(props.Placeholder, textX, textY, fontSize, rl.Fade(rl.White, 0.42))
 		} else if !isEmpty {
 			rl.DrawText(props.Value, textX, textY, fontSize, rl.White)
@@ -91,12 +91,12 @@ func (c *Components) Input(props InputProps) InputInstance {
 		// 	rl.DrawText(leftIndicator, originalTextX, textY, fontSize, rl.White)
 		// }
 
-		if state == STATE_ACTIVE {
+		if state == app.STATE_ACTIVE {
 			DrawRectangleRoundedLinePixels(rect, 4, 1, rl.Fade(rl.White, 0.4))
 		}
 
-		if state == STATE_ACTIVE && props.Ui.InputCursorStart == props.Ui.InputCursorEnd {
-			DrawCusor(props.Ui.InputCursorStart, newValue, textX, textY, fontSize, props.Ui)
+		if state == app.STATE_ACTIVE && app.Apk.InputCursorStart == app.Apk.InputCursorEnd {
+			DrawCusor(app.Apk.InputCursorStart, newValue, textX, textY, fontSize)
 		}
 	}
 
@@ -108,7 +108,7 @@ func (c *Components) Input(props InputProps) InputInstance {
 
 func UpdateClickedCursorPosition(value string, textX, fontSize int32, props InputProps) {
 	mousePoint := props.MousePoint
-	ui := props.Ui
+	ui := &app.Apk
 	totalTextWidth := rl.MeasureText(value, fontSize)
 	if mousePoint.X >= float32(textX+totalTextWidth) {
 		ui.SetCursors(len(value))
@@ -142,9 +142,9 @@ func UpdateClickedCursorPosition(value string, textX, fontSize int32, props Inpu
 	fmt.Println("uh oh")
 }
 
-func DrawCusor(position int, value string, textX, textY, fontSize int32, ui *lib.UIStruct) {
+func DrawCusor(position int, value string, textX, textY, fontSize int32) {
 	color := rl.Fade(rl.White, 0.72)
-	if ShouldBlink(ui) {
+	if ShouldBlink() {
 		color = rl.White
 	}
 
@@ -157,33 +157,33 @@ func DrawCusor(position int, value string, textX, textY, fontSize int32, ui *lib
 const blinkInterval = 0.6
 const blinkTotal = 0.5
 
-func ShouldBlink(ui *lib.UIStruct) bool {
+func ShouldBlink() bool {
 	// is blinking
-	if ui.BlinkingTimer > 0 {
-		return ShouldStayBlinked(ui)
+	if app.Apk.BlinkingTimer > 0 {
+		return ShouldStayBlinked()
 	}
 
-	ui.BlinkTimer += rl.GetFrameTime()
-	if ui.BlinkTimer > blinkInterval {
-		ui.BlinkTimer = 0
-		ui.BlinkingTimer += 0.001
+	app.Apk.BlinkTimer += rl.GetFrameTime()
+	if app.Apk.BlinkTimer > blinkInterval {
+		app.Apk.BlinkTimer = 0
+		app.Apk.BlinkingTimer += 0.001
 		return true
 	}
 	return false
 }
-func ShouldStayBlinked(ui *lib.UIStruct) bool {
-	ui.BlinkingTimer += rl.GetFrameTime()
-	if ui.BlinkingTimer > blinkInterval {
-		ui.BlinkingTimer = 0
+func ShouldStayBlinked() bool {
+	app.Apk.BlinkingTimer += rl.GetFrameTime()
+	if app.Apk.BlinkingTimer > blinkInterval {
+		app.Apk.BlinkingTimer = 0
 		return false
 	}
 	return true
 }
 
-func InputValueChange(props InputProps, state InteractableState) string {
+func InputValueChange(props InputProps, state app.InteractableState) string {
 	value := props.Value
-	ui := props.Ui
-	if state != STATE_ACTIVE {
+	ui := &app.Apk
+	if state != app.STATE_ACTIVE {
 		return value
 	}
 
@@ -223,7 +223,7 @@ func InputValueChange(props InputProps, state InteractableState) string {
 }
 
 func InputEvent(rect rl.Rectangle, props InputProps) bool {
-	ui := props.Ui
+	ui := &app.Apk
 	id := props.Id
 	mousePoint := props.MousePoint
 	isFocused := id == ui.FocusedId
@@ -267,18 +267,18 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 	return false
 }
 
-func InputState(props InputProps) InteractableState {
-	ui := props.Ui
+func InputState(props InputProps) app.InteractableState {
+	ui := &app.Apk
 	switch props.Id {
 	case ui.FocusedId:
-		return STATE_ACTIVE
+		return app.STATE_ACTIVE
 	case ui.HotId:
-		return STATE_HOT
+		return app.STATE_HOT
 	default:
-		return STATE_INITIAL
+		return app.STATE_INITIAL
 	}
 }
 
-func (input *InputInstance) Blur(ui *lib.UIStruct) {
-	ui.FocusedId = ""
+func (input *InputInstance) Blur() {
+	app.Apk.State.FocusedId = ""
 }

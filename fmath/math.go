@@ -1,4 +1,4 @@
-package lib
+package fmath
 
 import (
 	"math/rand/v2"

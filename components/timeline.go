@@ -1,12 +1,12 @@
 package components
 
 import (
+	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/layout"
-	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func TimelinePanelLabel(text string) lib.Component {
+func TimelinePanelLabel(text string) app.Component {
 	var fontSize int32 = 14
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		return func() {
@@ -14,15 +14,16 @@ func TimelinePanelLabel(text string) lib.Component {
 		}, 0, float32(fontSize)
 	}
 }
-func (c *Components) TimelineRow(label string, inputs lib.Component, keyframes [][2]float32) lib.Component {
+func TimelineRow(label string, inputs app.Component, keyframes [][2]float32) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		row := layout.Timeline.Row(rect)
-		row.Add(c.TimelinePanel(label, inputs))
-		row.Add(c.TimelineFrames(c.ui, keyframes))
+		row := layout.Timeline.
+			Row(rect).
+			Add(TimelinePanel(label, inputs)).
+			Add(TimelineFrames(keyframes))
 		return row.Draw, 0, row.Size.Height
 	}
 }
-func (*Components) TimelinePanel(label string, inputs lib.Component) lib.Component {
+func TimelinePanel(label string, inputs app.Component) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := layout.Timeline.Panel(rect)
 		row.Add(TimelinePanelLabel(label))
@@ -30,7 +31,7 @@ func (*Components) TimelinePanel(label string, inputs lib.Component) lib.Compone
 		return row.Draw, 0, row.Size.Height
 	}
 }
-func (c *Components) TimelineFrames(ui *lib.UIStruct, keyframes [][2]float32) lib.Component {
+func TimelineFrames(keyframes [][2]float32) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		return func() {
 			y := rect.ToInt32().Y + 11
@@ -38,7 +39,7 @@ func (c *Components) TimelineFrames(ui *lib.UIStruct, keyframes [][2]float32) li
 
 			if len(keyframes) > 0 {
 				for _, keyframe := range keyframes {
-					x := ui.GetXTimelineFrame(rect, keyframe[0])
+					x := app.Apk.State.GetXTimelineFrame(rect, keyframe[0])
 					keyframeRect := rl.NewRectangle(x, float32(y), 10, 10)
 					rl.DrawRectanglePro(
 						keyframeRect,        // A 10×20 rectangle
@@ -48,10 +49,26 @@ func (c *Components) TimelineFrames(ui *lib.UIStruct, keyframes [][2]float32) li
 					)
 
 					if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.NewRectangle(keyframeRect.X-5, keyframeRect.Y-5, keyframeRect.Width, keyframeRect.Height)) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-						// ui.SelectedKeyframe = lib.SelectedKeyframe{LayerId: selectedLayer.GetElement().Id, Keyframe: keyframe}
+						// ui.SelectedKeyframe = app.SelectedKeyframe{LayerId: selectedLayer.GetElement().Id, Keyframe: keyframe}
 					}
 				}
 			}
 		}, 0, 0
+	}
+}
+
+func TimelinePanelTitle(text string, layer app.Layer) app.Component {
+	var fontSize int32 = 16
+	var height = float32(fontSize)
+	return func(rect rl.Rectangle) (func(), float32, float32) {
+		width := float32(rl.MeasureText(text, fontSize))
+		interractable := app.NewInteractable(layer.GetName() + "panel-item")
+		if interractable.Event(rl.GetMousePosition(), rl.NewRectangle(rect.X, rect.Y, width, height)) {
+			//
+		}
+
+		return func() {
+			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y, fontSize, rl.White)
+		}, width, height
 	}
 }

@@ -1,11 +1,86 @@
-package lib
+package app
 
 import (
 	"errors"
 	"fmt"
 
+	"github.com/dudubtw/figma/fmath"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+type ChildSize struct {
+	SizeType
+	Value float32
+}
+
+type Padding struct {
+	top    float32
+	bottom float32
+	start  float32
+	end    float32
+}
+
+func NewPadding() *Padding {
+	return &Padding{}
+}
+
+func (p *Padding) Axis(horizontal, vertical float32) *Padding {
+	p.top = vertical
+	p.bottom = vertical
+	p.start = horizontal
+	p.end = horizontal
+	return p
+}
+func (p *Padding) All(padding float32) *Padding {
+	p.top = padding
+	p.bottom = padding
+	p.start = padding
+	p.end = padding
+	return p
+}
+func (p *Padding) Top(top float32) *Padding {
+	p.top = top
+	return p
+}
+func (p *Padding) Bottom(bottom float32) *Padding {
+	p.bottom = bottom
+	return p
+}
+func (p *Padding) Start(start float32) *Padding {
+	p.start = start
+	return p
+}
+func (p *Padding) End(end float32) *Padding {
+	p.end = end
+	return p
+}
+
+type Alignment string
+
+const (
+	ALIGNMENT_START  Alignment = "start"
+	ALIGNMENT_CENTER Alignment = "center"
+	ALIGNMENT_END    Alignment = "end"
+)
+
+type Direction string
+
+const (
+	DIRECTION_ROW    Direction = "row"
+	DIRECTION_COLUMN Direction = "column"
+)
+
+type SizeType string
+
+const (
+	SIZE_ABSOLUTE SizeType = "absolute"
+	SIZE_WEIGHT   SizeType = "weight"
+)
+
+type Size struct {
+	Width  float32
+	Height float32
+}
 
 type Layout struct {
 	padding   Padding
@@ -85,10 +160,18 @@ func NewLayout() *Layout {
 	return &Layout{}
 }
 
+func (layout *Layout) paddingX() float32 {
+	return layout.padding.start + layout.padding.end
+}
+func (layout *Layout) paddingY() float32 {
+	return layout.padding.top + layout.padding.bottom
+}
 func (layout *Layout) Padding(padding *Padding) *Layout {
 	layout.padding = *padding
 	layout.Size.X = layout.position.X + padding.start
 	layout.Size.Y = layout.position.Y + padding.top
+	layout.Size.Width = padding.start + padding.end
+	layout.Size.Height = layout.paddingY()
 	return layout
 }
 func (layout *Layout) Gap(gap float32) *Layout {
@@ -120,25 +203,27 @@ func (layout *Layout) PositionRect(rect rl.Rectangle) *Layout {
 
 func (layout *Layout) Width(value float32, constrains ...ChildSize) *Layout {
 	layout.width = NewContrainedSize(value, constrains...)
-	layout.width.Compute(layout.gap, layout.padding.start+layout.padding.end)
+	layout.width.Compute(layout.gap, layout.paddingX())
 	layout.Size.Width = layout.width.Value
 	return layout
 }
 func (layout *Layout) Height(value float32, constrains ...ChildSize) *Layout {
 	layout.height = NewContrainedSize(value, constrains...)
-	layout.height.Compute(layout.gap, layout.padding.top+layout.padding.bottom)
+	layout.height.Compute(layout.gap, layout.paddingY())
 	// TODO
 	// IMPROVE CURRENT RECT AND INITIAL RECT LOGIC
 	layout.Size.Height = layout.height.Value
 	return layout
 }
 
-func (layout *Layout) Add(component Component) *Layout {
-	width := layout.width.CurrentValue(layout.gap)
-	height := layout.height.CurrentValue(layout.gap)
-	draw, width, height := component(rl.NewRectangle(layout.Size.X, layout.Size.Y, width, height))
-	layout.drawStack = append(layout.drawStack, draw)
-	layout.next(width, height)
+func (layout *Layout) Add(components ...Component) *Layout {
+	for _, component := range components {
+		width := layout.width.CurrentValue(layout.gap)
+		height := layout.height.CurrentValue(layout.gap)
+		draw, width, height := component(rl.NewRectangle(layout.Size.X, layout.Size.Y, width, height))
+		layout.drawStack = append(layout.drawStack, draw)
+		layout.next(width, height)
+	}
 	return layout
 }
 
@@ -162,11 +247,11 @@ func (layout *Layout) next(width, height float32) {
 
 	switch layout.direction {
 	case DIRECTION_ROW:
-		isFirst := layout.position.X == layout.Size.X
+		isFirst := layout.Size.Width == layout.paddingX()
 		layout.Size.X += width + layout.gap
 
 		currentHeight := layout.Size.Height
-		layout.Size.Height = Max(currentHeight, height+layout.padding.top+layout.padding.bottom)
+		layout.Size.Height = fmath.Max(currentHeight, height+layout.paddingY())
 		if layout.width.Exists() {
 			return
 		}
@@ -176,11 +261,11 @@ func (layout *Layout) next(width, height float32) {
 			layout.Size.Width += layout.gap
 		}
 	case DIRECTION_COLUMN:
-		isFirst := layout.position.Y == layout.Size.Y
+		isFirst := layout.Size.Height == layout.paddingY()
 		layout.Size.Y += height + layout.gap
 
 		currentWidth := layout.Size.Width
-		layout.Size.Width = Max(currentWidth, width+layout.padding.start+layout.padding.end)
+		layout.Size.Width = fmath.Max(currentWidth, width+height+layout.paddingX())
 		if layout.height.Exists() {
 			return
 		}

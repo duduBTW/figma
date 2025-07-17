@@ -1,27 +1,8 @@
 package components
 
 import (
-	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
-
-type Components struct {
-	ui *lib.UIStruct
-
-	inputStates map[string]InteractableState
-	inputNames  map[string]bool
-}
-
-func (c *Components) FrameReset() {
-	c.inputNames = map[string]bool{}
-}
-func NewComponents(ui *lib.UIStruct) Components {
-	return Components{
-		ui:          ui,
-		inputStates: map[string]InteractableState{},
-		inputNames:  map[string]bool{},
-	}
-}
 
 // Helper function to find the minimum of two float32 values
 func minF(a, b float32) float32 {
@@ -69,7 +50,7 @@ func DrawRectangleRoundedPixels(rec rl.Rectangle, radiusPixels Roundness, color 
 	roundness = maxF(0.0, minF(roundness, 1.0))
 
 	// Call the original raylib function with the calculated roundness
-	rl.DrawRectangleRounded(rec, roundness, 0, color)
+	rl.DrawRectangleRounded(rec, roundness, 16, color)
 }
 
 func DrawRectangleRoundedLinePixels(rec rl.Rectangle, radiusPixels Roundness, lineThick float32, color rl.Color) {

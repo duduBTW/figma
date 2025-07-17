@@ -1,40 +1,41 @@
 package main
 
 import (
-	"github.com/dudubtw/figma/lib"
+	"github.com/dudubtw/figma/app"
+	"github.com/dudubtw/figma/components"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func RightPart() lib.Component {
+func RightPart() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.
+		layout := app.
 			NewLayout().
 			PositionRect(rect).
 			Column().
 			Gap(PANEL_GAP).
 			Width(rect.Width).
 			Height(rect.Height,
-				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: TOOL_DOCK_HEIGHT},
-				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1}).
+				app.ChildSize{SizeType: app.SIZE_ABSOLUTE, Value: TOOL_DOCK_HEIGHT},
+				app.ChildSize{SizeType: app.SIZE_WEIGHT, Value: 1}).
 			Add(ToolDock()).
 			Add(PropertiesPanel())
 		return layout.Draw, 0, 0
 	}
 }
 
-var tools = []lib.Tool{
-	lib.ToolSelection,
-	lib.ToolRectangle,
-	lib.ToolText,
+var tools = []app.Tool{
+	app.ToolSelection,
+	app.ToolRectangle,
+	app.ToolText,
 }
 
-func ToolDock() lib.Component {
+func ToolDock() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.
+		layout := app.
 			NewLayout().
 			PositionRect(rect).
 			Row().
-			Padding(lib.NewPadding().Axis(12, 8)).
+			Padding(app.NewPadding().Axis(12, 8)).
 			Gap(8)
 
 		for _, tool := range tools {
@@ -48,25 +49,25 @@ func ToolDock() lib.Component {
 	}
 }
 
-var toolButtonLabels = map[lib.Tool]string{
-	lib.ToolSelection: "S",
-	lib.ToolRectangle: "R",
-	lib.ToolText:      "T",
+var toolButtonLabels = map[app.Tool]string{
+	app.ToolSelection: "S",
+	app.ToolRectangle: "R",
+	app.ToolText:      "T",
 }
 
-func ToolButton(tool lib.Tool) lib.Component {
+func ToolButton(tool app.Tool) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		button := c.Button("tool-"+string(tool), rl.NewVector2(rect.X, rect.Y), []lib.Component{Content(tool)})
+		button := components.Button("tool-"+string(tool), rl.NewVector2(rect.X, rect.Y), []app.Component{Content(tool)})
 
 		if button.Clicked {
-			ui.SelectedTool = tool
+			app.Apk.SelectedTool = tool
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height
 	}
 }
 
-func Content(tool lib.Tool) lib.Component {
+func Content(tool app.Tool) app.Component {
 	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
 		textContet := toolButtonLabels[tool]
 		var fontSize int32 = 16
@@ -76,16 +77,16 @@ func Content(tool lib.Tool) lib.Component {
 	}
 }
 
-func PropertiesPanel() lib.Component {
+func PropertiesPanel() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 
 		return func() {
 			DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
-			if selectedLayer == nil {
+			if app.Apk.SelectedLayer == nil {
 				return
 			}
 
-			selectedLayer.DrawControls(&ui, rl.NewRectangle(rect.X+12, rect.Y+12, rect.Width-24, rect.Height-24), c)
+			app.Apk.SelectedLayer.DrawControls(rl.NewRectangle(rect.X+12, rect.Y+12, rect.Width-24, rect.Height-24))
 		}, 0, 0
 	}
 }

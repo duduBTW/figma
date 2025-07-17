@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/layer"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -45,15 +46,16 @@ func RectangleSelectionActionHandler(container rl.Rectangle) {
 	if startPosRec != nil && rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 		rect := CalculateRectangle()
 		index := 0
-		for _, l := range layers {
+		for _, l := range app.Apk.Layers {
 			_, isRec := l.(*layer.Rectangle)
 			if isRec {
 				index++
 			}
 		}
 
-		newLayer := layer.NewRectangle(NewLayerId(), rect, index)
-		AppendLayer(&newLayer)
+		newLayer := layer.NewRectangle(app.Apk.NewLayerId(), rect, index)
+		app.Apk.AppendLayer(&newLayer)
+		startPosRec = nil
 		return
 	}
 

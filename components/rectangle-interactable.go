@@ -1,47 +1,46 @@
 package components
 
 import (
-	"github.com/dudubtw/figma/lib"
+	"github.com/dudubtw/figma/app"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type RectangleInteractable struct {
 	id string
-	ui *lib.UIStruct
 }
 
-func (interactable *RectangleInteractable) State() InteractableState {
-	ui := interactable.ui
+func (interactable *RectangleInteractable) State() app.InteractableState {
 	switch interactable.id {
-	case ui.ActiveId:
-		return STATE_ACTIVE
-	case ui.HotId:
-		return STATE_HOT
+	case app.Apk.ActiveId:
+		return app.STATE_ACTIVE
+	case app.Apk.HotId:
+		return app.STATE_HOT
 	default:
-		return STATE_INITIAL
+		return app.STATE_INITIAL
 	}
 }
 
 func (interactable *RectangleInteractable) Event(mousePoint rl.Vector2, rect rl.Rectangle) bool {
-	ui := interactable.ui
 	id := interactable.id
-	isActive := id == ui.ActiveId
+	isActive := id == app.Apk.ActiveId
 	isInside := rl.CheckCollisionPointRec(mousePoint, rect)
 
-	if ui.HotId == id && !isInside {
-		ui.HotId = ""
+	activeId := app.Apk.ActiveId
+	hotId := app.Apk.HotId
+	if hotId == id && !isInside {
+		hotId = ""
 		return false
 	}
 
 	// Other element is being interacted with
-	if (ui.ActiveId != "" && !isActive) ||
-		(ui.HotId != "" && !isInside) {
+	if (activeId != "" && !isActive) ||
+		(hotId != "" && !isInside) {
 		return false
 	}
 
 	if isActive && rl.IsMouseButtonUp(rl.MouseButtonLeft) {
-		ui.ActiveId = ""
-		ui.HotId = ""
+		app.Apk.ActiveId = ""
+		app.Apk.HotId = ""
 		return isInside
 	}
 
@@ -54,21 +53,20 @@ func (interactable *RectangleInteractable) Event(mousePoint rl.Vector2, rect rl.
 	}
 
 	if rl.IsMouseButtonDown(rl.MouseButtonLeft) {
-		ui.ActiveId = id
-		ui.HotId = ""
+		app.Apk.ActiveId = id
+		app.Apk.HotId = ""
 		return false
 	}
 
-	if ui.HotId == "" {
-		ui.HotId = id
+	if hotId == "" {
+		app.Apk.HotId = id
 	}
 
 	return false
 }
 
-func NewRectangleInteractable(id string, ui *lib.UIStruct) RectangleInteractable {
+func NewRectangleInteractable(id string) RectangleInteractable {
 	return RectangleInteractable{
 		id: id,
-		ui: ui,
 	}
 }

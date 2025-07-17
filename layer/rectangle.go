@@ -3,9 +3,9 @@ package layer
 import (
 	"strconv"
 
+	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/components"
 	"github.com/dudubtw/figma/layout"
-	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -15,10 +15,10 @@ const (
 )
 
 type Rectangle struct {
-	Element
-	Width  AnimatedProp
-	Height AnimatedProp
-	Color  AnimatedColor
+	app.Element
+	Width  app.AnimatedProp
+	Height app.AnimatedProp
+	Color  app.AnimatedColor
 
 	InputValues map[string]string
 }
@@ -37,10 +37,10 @@ func NewRectangle(id string, rect rl.Rectangle, index int) Rectangle {
 	}
 
 	return Rectangle{
-		Width:       NewAnimatedProp(float32(width), width_KEY),
-		Height:      NewAnimatedProp(float32(height), height_KEY),
-		Color:       NewAnimatedColor(217, 217, 217, 255),
-		Element:     NewElement(id, rl.NewVector2(rect.X, rect.Y), "Rectangle "+strconv.Itoa(index+1)),
+		Width:       app.NewAnimatedProp(float32(width), width_KEY),
+		Height:      app.NewAnimatedProp(float32(height), height_KEY),
+		Color:       app.NewAnimatedColor(217, 217, 217, 255),
+		Element:     app.NewElement(id, rl.NewVector2(rect.X, rect.Y), "Rectangle "+strconv.Itoa(index+1)),
 		InputValues: map[string]string{},
 	}
 }
@@ -48,36 +48,29 @@ func NewRectangle(id string, rect rl.Rectangle, index int) Rectangle {
 func (r *Rectangle) GetName() string {
 	return r.Name
 }
-func (r *Rectangle) GetElement() *Element {
+func (r *Rectangle) GetElement() *app.Element {
 	return &r.Element
 }
 
-func (r *Rectangle) DrawHighlight(ui lib.UIStruct, comp components.Components) {
-	rect := r.Rect(ui.SelectedFrame)
+func (r *Rectangle) DrawHighlight() {
+	rect := r.Rect(app.Apk.State.SelectedFrame)
 	rl.DrawRectangleLinesEx(rect, 2, rl.Blue)
 
-	padding := lib.Padding{}
-	padding.Axis(4, 2)
-	box := comp.Box(components.BoxProps{
-		Padding:      padding,
+	box := components.Box(components.BoxProps{
+		Padding:      *app.NewPadding().Axis(4, 2),
 		Rect:         rl.NewRectangle(rect.X, rect.Y+rect.Height+4, 0, 0),
-		Direction:    lib.DIRECTION_ROW,
-		Children:     []lib.Component{RectangleDimensionsText(rect)},
+		Direction:    app.DIRECTION_ROW,
+		Children:     []app.Component{RectangleDimensionsText(rect)},
 		Color:        rl.Blue,
 		BorderRadius: 2,
 	})
 	box.Draw()
 }
 
-func RectangleDimensionsText(rect rl.Rectangle) lib.Component {
-	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
-		textContent := strconv.Itoa(int(rect.Width)) + " x " + strconv.Itoa(int(rect.Height))
-		fontSize := 10
-
-		return func() {
-			rl.DrawText(textContent, int32(avaliablePosition.X), int32(avaliablePosition.Y), int32(fontSize), rl.White)
-		}, float32(rl.MeasureText(textContent, int32(fontSize))), float32(fontSize)
-	}
+func RectangleDimensionsText(rect rl.Rectangle) app.Component {
+	textContent := strconv.Itoa(int(rect.Width)) + " x " + strconv.Itoa(int(rect.Height))
+	var fontSize int32 = 10
+	return components.Text(textContent, fontSize)
 }
 
 func (r *Rectangle) Rect(selectedFrame int) rl.Rectangle {
@@ -85,41 +78,41 @@ func (r *Rectangle) Rect(selectedFrame int) rl.Rectangle {
 	y := r.Position.Y.KeyFramePosition(selectedFrame)
 	return rl.NewRectangle(x, y, r.Width.KeyFramePosition(selectedFrame), r.Height.KeyFramePosition(selectedFrame))
 }
-func (r *Rectangle) DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool {
-	interactable := components.NewInteractable(r.Id, ui)
-	rect := r.Rect(ui.SelectedFrame)
+func (r *Rectangle) DrawComponent(mousePoint rl.Vector2) bool {
+	interactable := app.NewInteractable(r.Id)
+	rect := r.Rect(app.Apk.SelectedFrame)
 	interactable.Event(mousePoint, rect)
-	rl.DrawRectangleRec(rect, r.Color.Get(ui.SelectedFrame))
-	r.interactable = interactable
-	return interactable.State() == components.STATE_ACTIVE
+	rl.DrawRectangleRec(rect, r.Color.Get(app.Apk.SelectedFrame))
+	r.Interactable = interactable
+	return interactable.State() == app.STATE_ACTIVE
 }
 
 // -----------
 // Controls
 // -----------
 
-func (r *Rectangle) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
+func (r *Rectangle) DrawControls(rect rl.Rectangle) {
 	NewPanelLayout(rect).
-		Add(r.Position.Controls(ui, comp, r)).
-		Add(r.SizeControls(ui, comp)).
-		Add(r.Color.Controls(ui, comp, r)).
+		Add(components.NewAnimatedVector2(r.Position, r, "").Controls()).
+		Add(r.SizeControls()).
+		Add(components.NewAnimatedColor(&r.Color, r, "").Controls()).
 		Draw()
 }
 
-func (r *Rectangle) SizeControls(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (r *Rectangle) SizeControls() app.Component {
 	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
-		row := NewControlsLayout(avaliablePosition).
-			Add(Label("Size")).
-			Add(r.SizeControlsInputs(ui, comp))
+		row := components.NewSidebarProperyLabel(avaliablePosition).
+			Add(components.SidebarProperyLabel("Size")).
+			Add(r.SizeControlsInputs())
 		return row.Draw, 0, row.Size.Height
 	}
 }
 
-func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (r *Rectangle) SizeControlsInputs() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		row := InputsLayout(2, rect).
-			Add(r.Width.Input(ui, comp, r, "")).
-			Add(r.Height.Input(ui, comp, r, ""))
+		row := components.SidebrInputsLayout(2, rect).
+			Add(components.NewAnimatedProp(&r.Width, r, "").Input()).
+			Add(components.NewAnimatedProp(&r.Height, r, "").Input())
 		return row.Draw, 0, row.Size.Height
 	}
 }
@@ -128,21 +121,22 @@ func (r *Rectangle) SizeControlsInputs(ui *lib.UIStruct, comp components.Compone
 // Timeline
 // -----------
 
-func (r *Rectangle) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (r *Rectangle) DrawTimeline() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := layout.Timeline.Root(rect).
-			Add(TimelinePanelTitle(r.Name, r, ui))
+			Add(components.TimelinePanelTitle(r.Name, r))
 
 		prefix := "timeline"
-		if r.Position.CanDrawTimeline() {
-			r.Position.Timeline(layout, ui, comp, r, prefix)
+		layout.Add(components.NewAnimatedVector2(r.Position, r, prefix).Timeline()...)
+
+		widthComponent := components.NewAnimatedProp(&r.Width, r, prefix)
+		if widthComponent.CanDrawTimeline() {
+			layout.Add(components.TimelineRow("Width", widthComponent.Input(), r.Width.SortedKeyframes))
 		}
 
-		if r.Width.CanDrawTimeline() {
-			layout.Add(comp.TimelineRow("Width", r.Width.Input(ui, comp, r, prefix), r.Width.SortedKeyframes))
-		}
-		if r.Height.CanDrawTimeline() {
-			layout.Add(comp.TimelineRow("Height", r.Height.Input(ui, comp, r, prefix), r.Height.SortedKeyframes))
+		heightComponent := components.NewAnimatedProp(&r.Height, r, prefix)
+		if heightComponent.CanDrawTimeline() {
+			layout.Add(components.TimelineRow("Height", heightComponent.Input(), r.Height.SortedKeyframes))
 		}
 
 		return layout.Draw, layout.Size.Width, layout.Size.Height

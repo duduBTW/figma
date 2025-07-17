@@ -1,16 +1,16 @@
 package layer
 
 import (
+	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/components"
 	"github.com/dudubtw/figma/layout"
-	"github.com/dudubtw/figma/lib"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Text struct {
-	Element
-	Color       AnimatedColor
-	FontSize    AnimatedProp
+	app.Element
+	Color       app.AnimatedColor
+	FontSize    app.AnimatedProp
 	TextContent string
 
 	InputValues map[string]string
@@ -24,44 +24,44 @@ const (
 
 func NewText(id string, rect rl.Vector2) Text {
 	return Text{
-		Element:     NewElement(id, rect, defaultTextName),
+		Element:     app.NewElement(id, rect, defaultTextName),
 		InputValues: map[string]string{},
-		Color:       NewAnimatedColor(255, 255, 255, 255),
-		FontSize:    NewAnimatedProp(20, font_SIZE_KEY),
+		Color:       app.NewAnimatedColor(255, 255, 255, 255),
+		FontSize:    app.NewAnimatedProp(20, font_SIZE_KEY),
 		TextContent: "Hello world!",
 	}
 }
 
 func (t *Text) GetName() string {
-	if t.Name == defaultTextName && t.TextContent == "" {
-		return t.Name
+	if t.Element.Name == defaultTextName && t.TextContent == "" {
+		return t.Element.Name
 	}
 	return t.TextContent
 }
 
-func (t *Text) GetElement() *Element {
+func (t *Text) GetElement() *app.Element {
 	return &t.Element
 }
 
-func (t *Text) DrawHighlight(ui lib.UIStruct, comp components.Components) {
-	rect := t.Rect(ui.SelectedFrame)
+func (t *Text) DrawHighlight() {
+	rect := t.Rect(app.Apk.SelectedFrame)
 	rl.DrawRectangleLinesEx(rect, 2, rl.Blue)
 }
 
-func (t *Text) DrawComponent(ui *lib.UIStruct, mousePoint rl.Vector2) bool {
-	interactable := components.NewInteractable(t.Id, ui)
-	rect := t.Rect(ui.SelectedFrame)
+func (t *Text) DrawComponent(mousePoint rl.Vector2) bool {
+	interactable := app.NewInteractable(t.Element.Id)
+	rect := t.Rect(app.Apk.SelectedFrame)
 	interactable.Event(mousePoint, rect)
-	fontSize := t.FontSize.KeyFramePosition(ui.SelectedFrame)
-	color := t.Color.Get(ui.SelectedFrame)
+	fontSize := t.FontSize.KeyFramePosition(app.Apk.SelectedFrame)
+	color := t.Color.Get(app.Apk.SelectedFrame)
 	rl.DrawText(t.TextContent, rect.ToInt32().X, rect.ToInt32().Y, int32(fontSize), color)
-	t.interactable = interactable
-	return interactable.State() == components.STATE_ACTIVE
+	t.Element.Interactable = interactable
+	return interactable.State() == app.STATE_ACTIVE
 }
 
 func (t *Text) Rect(selectedFrame int) rl.Rectangle {
-	x := t.Position.X.KeyFramePosition(selectedFrame)
-	y := t.Position.Y.KeyFramePosition(selectedFrame)
+	x := t.Element.Position.X.KeyFramePosition(selectedFrame)
+	y := t.Element.Position.Y.KeyFramePosition(selectedFrame)
 
 	fontSize := t.FontSize.KeyFramePosition(selectedFrame)
 	return rl.NewRectangle(x, y, float32(rl.MeasureText(t.TextContent, int32(fontSize))), fontSize)
@@ -71,19 +71,19 @@ func (t *Text) Rect(selectedFrame int) rl.Rectangle {
 // Controls
 // -----------
 
-func (t *Text) DrawControls(ui *lib.UIStruct, rect rl.Rectangle, comp components.Components) {
+func (t *Text) DrawControls(rect rl.Rectangle) {
 	NewPanelLayout(rect).
-		Add(t.Position.Controls(ui, comp, t)).
-		Add(t.FontSizeControls(ui, comp)).
-		Add(t.Color.Controls(ui, comp, t)).
+		Add(components.NewAnimatedVector2(t.Position, t, "").Controls()).
+		Add(t.FontSizeControls()).
+		Add(components.NewAnimatedColor(&t.Color, t, "").Controls()).
 		Draw()
 }
 
-func (t *Text) FontSizeControls(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (t *Text) FontSizeControls() app.Component {
 	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
-		row := NewControlsLayout(avaliablePosition).
-			Add(Label("Font size")).
-			Add(t.FontSize.Input(ui, comp, t, ""))
+		row := components.NewSidebarProperyLabel(avaliablePosition).
+			Add(components.SidebarProperyLabel("Font size")).
+			Add(components.NewAnimatedProp(&t.FontSize, t, "").Input())
 		return row.Draw, 0, row.Size.Height
 	}
 }
@@ -92,17 +92,16 @@ func (t *Text) FontSizeControls(ui *lib.UIStruct, comp components.Components) li
 // Timeline
 // -----------
 
-func (t *Text) DrawTimeline(ui *lib.UIStruct, comp components.Components) lib.Component {
+func (t *Text) DrawTimeline() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := layout.Timeline.Root(rect)
-		layout.Add(TimelinePanelTitle(t.Name, t, ui))
+		layout.Add(components.TimelinePanelTitle(t.Name, t))
 		prefix := "timeline"
-		if t.Position.CanDrawTimeline() {
-			t.Position.Timeline(layout, ui, comp, t, prefix)
-		}
 
-		if t.FontSize.CanDrawTimeline() {
-			layout.Add(comp.TimelineRow("Font size", t.FontSize.Input(ui, comp, t, prefix), t.FontSize.SortedKeyframes))
+		layout.Add(components.NewAnimatedVector2(t.Position, t, prefix).Timeline()...)
+		fontSizeComponent := components.NewAnimatedProp(&t.FontSize, t, prefix)
+		if fontSizeComponent.CanDrawTimeline() {
+			layout.Add(components.TimelineRow("Font size", fontSizeComponent.Input(), t.FontSize.SortedKeyframes))
 		}
 
 		return layout.Draw, layout.Size.Width, layout.Size.Height

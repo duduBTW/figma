@@ -1,21 +1,20 @@
 package main
 
 import (
-	"github.com/dudubtw/figma/components"
-	"github.com/dudubtw/figma/lib"
+	"github.com/dudubtw/figma/app"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func UpperPart() lib.Component {
+func UpperPart() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		layout := lib.
+		layout := app.
 			NewLayout().
 			PositionRect(rect).
 			Row().
 			Gap(PANEL_GAP).
 			Width(rect.Width,
-				lib.ChildSize{SizeType: lib.SIZE_WEIGHT, Value: 1},
-				lib.ChildSize{SizeType: lib.SIZE_ABSOLUTE, Value: SIDE_PANEL_WIDTH}).
+				app.ChildSize{SizeType: app.SIZE_WEIGHT, Value: 1},
+				app.ChildSize{SizeType: app.SIZE_ABSOLUTE, Value: SIDE_PANEL_WIDTH}).
 			Height(rect.Height).
 			Add(Canvas()).
 			Add(RightPart())
@@ -23,7 +22,7 @@ func UpperPart() lib.Component {
 	}
 }
 
-func Canvas() lib.Component {
+func Canvas() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		return func() {
 			rl.BeginMode2D(camera)
@@ -32,20 +31,20 @@ func Canvas() lib.Component {
 
 			CanvasContent(rect)
 
-			switch ui.SelectedTool {
-			case lib.ToolSelection:
+			switch app.Apk.SelectedTool {
+			case app.ToolSelection:
 				Selection(rect)
-			case lib.ToolRectangle:
+			case app.ToolRectangle:
 				RectangleTool(rect)
-			case lib.ToolText:
+			case app.ToolText:
 				TextTool(rect)
 			}
 
 			// if drawHighlight != nil {
 			// 	drawHighlight(ui, c)
 			// }
-			if selectedLayer != nil {
-				selectedLayer.DrawHighlight(ui, c)
+			if app.Apk.SelectedLayer != nil {
+				app.Apk.SelectedLayer.DrawHighlight()
 			}
 
 			rl.EndScissorMode()
@@ -55,14 +54,15 @@ func Canvas() lib.Component {
 }
 
 func CanvasContent(rect rl.Rectangle) {
-	for _, l := range layers {
-		isClicked := l.DrawComponent(&ui, rl.GetScreenToWorld2D(rl.GetMousePosition(), camera))
+	for _, l := range app.Apk.Layers {
+		isClicked := l.DrawComponent(rl.GetScreenToWorld2D(rl.GetMousePosition(), camera))
 		if isClicked {
-			selectedLayer = l
+			app.Apk.SelectedLayer = l
 		}
 
-		if l.State() == components.STATE_HOT || l.State() == components.STATE_ACTIVE {
-			drawHighlight = l.DrawHighlight
-		}
+		// TODO REIMPLEMENT
+		// if l.State() == components.STATE_HOT || l.State() == components.STATE_ACTIVE {
+		// drawHighlight = l.DrawHighlight
+		// }
 	}
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"math"
 
-	"github.com/dudubtw/figma/components"
+	"github.com/dudubtw/figma/app"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -21,7 +21,7 @@ func Selection(canvas rl.Rectangle) {
 		rl.SetMouseCursor(rl.MouseCursorDefault)
 	}
 
-	if !rl.CheckCollisionPointRec(rl.GetMousePosition(), canvas) || selectedLayer == nil || selectedLayer.State() != components.STATE_ACTIVE {
+	if !rl.CheckCollisionPointRec(rl.GetMousePosition(), canvas) || app.Apk.SelectedLayer == nil || app.Apk.SelectedLayer.State() != app.STATE_ACTIVE {
 		return
 	}
 
@@ -31,7 +31,7 @@ func Selection(canvas rl.Rectangle) {
 		return
 	}
 
-	element := selectedLayer.GetElement()
+	element := app.Apk.SelectedLayer.GetElement()
 	x := movingCurrentPos.X - movingSartPos.X
 	y := movingCurrentPos.Y - movingSartPos.Y
 
@@ -60,11 +60,11 @@ func Selection(canvas rl.Rectangle) {
 	}
 
 	if direction != 1 && x != 0 {
-		element.Position.X.Set(dragAnchor.X+x, &ui)
+		element.Position.X.Set(dragAnchor.X + x)
 	}
 
 	if direction != -1 && y != 0 {
-		element.Position.Y.Set(dragAnchor.Y+y, &ui)
+		element.Position.Y.Set(dragAnchor.Y + y)
 	}
 }
 
@@ -78,8 +78,8 @@ func SelectionActionHandler(start **rl.Vector2) *rl.Vector2 {
 
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		*start = &mousePos
-		if selectedLayer != nil {
-			dragAnchor = selectedLayer.Rect(ui.SelectedFrame)
+		if app.Apk.SelectedLayer != nil {
+			dragAnchor = app.Apk.SelectedLayer.Rect(app.Apk.SelectedFrame)
 		}
 		return *start
 	}

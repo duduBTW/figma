@@ -1,7 +1,8 @@
 package components
 
 import (
-	"github.com/dudubtw/figma/lib"
+	"github.com/dudubtw/figma/app"
+	"github.com/dudubtw/figma/fmath"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -11,28 +12,28 @@ type ButtonInstance struct {
 	Rect    rl.Rectangle
 }
 
-func (c *Components) Button(id string, position rl.Vector2, children []lib.Component) ButtonInstance {
+func Button(id string, position rl.Vector2, children []app.Component) ButtonInstance {
 	buttonInstance := ButtonInstance{}
-	interactable := NewInteractable(id, c.ui)
+	interactable := app.NewInteractable(id)
 
-	layout := lib.
+	layout := app.
 		NewLayout().
 		Position(position).
 		Row().
-		Padding(lib.NewPadding().All(8)).
+		Padding(app.NewPadding().All(8)).
 		Gap(8)
 
 	for _, component := range children {
 		layout.Add(component)
 	}
 
-	containerRect := rl.NewRectangle(position.X, position.Y, lib.Max(layout.Size.Width, 24), lib.Max(layout.Size.Height, 24))
+	containerRect := rl.NewRectangle(position.X, position.Y, fmath.Max(layout.Size.Width, 24), fmath.Max(layout.Size.Height, 24))
 	clicked := interactable.Event(rl.GetMousePosition(), containerRect)
 	var containerBackgroundColor = rl.Purple
 	switch interactable.State() {
-	case STATE_HOT:
+	case app.STATE_HOT:
 		containerBackgroundColor = rl.DarkPurple
-	case STATE_ACTIVE:
+	case app.STATE_ACTIVE:
 		containerBackgroundColor = rl.Pink
 	}
 
