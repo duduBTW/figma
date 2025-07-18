@@ -4,9 +4,28 @@ import (
 	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/layer"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/ncruces/zenity"
 )
 
 func ImageTool(rect rl.Rectangle) {
+	// User just clicked on the image tool
+	if app.Apk.DroppingTexture == nil {
+		dir, err := zenity.SelectFile(
+			zenity.Title("Select an image"),
+			zenity.FileFilter{
+				Patterns: []string{"*.png", "*.jpg", ".jpeg"},
+			},
+		)
+
+		if err != nil {
+			// Goes back to the selection tool if nothing was selected
+			app.Apk.SelectedTool = app.ToolSelection
+			return
+		}
+
+		app.Apk.SetDroppingTexture(dir)
+	}
+
 	mousePoint := rl.GetMousePosition()
 	if app.Apk.DroppingTexture == nil || !rl.CheckCollisionPointRec(mousePoint, rect) {
 		return
