@@ -56,6 +56,7 @@ func RectangleSelectionActionHandler(container rl.Rectangle) {
 		newLayer := layer.NewRectangle(app.Apk.NewLayerId(), rect, index)
 		app.Apk.AppendLayer(&newLayer)
 		startPosRec = nil
+		currentPosRec = nil
 		return
 	}
 

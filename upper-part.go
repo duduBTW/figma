@@ -38,11 +38,13 @@ func Canvas() app.Component {
 				RectangleTool(rect)
 			case app.ToolText:
 				TextTool(rect)
+			case app.ToolImage:
+				ImageTool(rect)
 			}
 
-			// if drawHighlight != nil {
-			// 	drawHighlight(ui, c)
-			// }
+			if app.Apk.DrawFrameHighlight != nil {
+				app.Apk.DrawFrameHighlight()
+			}
 			if app.Apk.SelectedLayer != nil {
 				app.Apk.SelectedLayer.DrawHighlight()
 			}
@@ -60,9 +62,8 @@ func CanvasContent(rect rl.Rectangle) {
 			app.Apk.SelectedLayer = l
 		}
 
-		// TODO REIMPLEMENT
-		// if l.State() == components.STATE_HOT || l.State() == components.STATE_ACTIVE {
-		// drawHighlight = l.DrawHighlight
-		// }
+		if l.State() == app.STATE_HOT || l.State() == app.STATE_ACTIVE {
+			app.Apk.DrawFrameHighlight = l.DrawHighlight
+		}
 	}
 }

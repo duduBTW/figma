@@ -5,7 +5,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-var drawHighlight func() = nil
 var camera = rl.Camera2D{}
 
 func main() {

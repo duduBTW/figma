@@ -64,7 +64,7 @@ func TimelinePanelTitle(text string, layer app.Layer) app.Component {
 		width := float32(rl.MeasureText(text, fontSize))
 		interractable := app.NewInteractable(layer.GetName() + "panel-item")
 		if interractable.Event(rl.GetMousePosition(), rl.NewRectangle(rect.X, rect.Y, width, height)) {
-			//
+			app.Apk.SelectedLayer = layer
 		}
 
 		return func() {

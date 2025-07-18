@@ -12,8 +12,6 @@ type Text struct {
 	Color       app.AnimatedColor
 	FontSize    app.AnimatedProp
 	TextContent string
-
-	InputValues map[string]string
 }
 
 const defaultTextName = "Text"
@@ -25,7 +23,6 @@ const (
 func NewText(id string, rect rl.Vector2) Text {
 	return Text{
 		Element:     app.NewElement(id, rect, defaultTextName),
-		InputValues: map[string]string{},
 		Color:       app.NewAnimatedColor(255, 255, 255, 255),
 		FontSize:    app.NewAnimatedProp(20, font_SIZE_KEY),
 		TextContent: "Hello world!",
@@ -72,7 +69,7 @@ func (t *Text) Rect(selectedFrame int) rl.Rectangle {
 // -----------
 
 func (t *Text) DrawControls(rect rl.Rectangle) {
-	NewPanelLayout(rect).
+	components.NewPanelLayout(rect).
 		Add(components.NewAnimatedVector2(t.Position, t, "").Controls()).
 		Add(t.FontSizeControls()).
 		Add(components.NewAnimatedColor(&t.Color, t, "").Controls()).

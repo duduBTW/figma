@@ -4,6 +4,7 @@ import (
 	"github.com/dudubtw/figma/app"
 	"github.com/dudubtw/figma/components"
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/ncruces/zenity"
 )
 
 func RightPart() app.Component {
@@ -27,6 +28,7 @@ var tools = []app.Tool{
 	app.ToolSelection,
 	app.ToolRectangle,
 	app.ToolText,
+	app.ToolImage,
 }
 
 func ToolDock() app.Component {
@@ -53,6 +55,7 @@ var toolButtonLabels = map[app.Tool]string{
 	app.ToolSelection: "S",
 	app.ToolRectangle: "R",
 	app.ToolText:      "T",
+	app.ToolImage:     "I",
 }
 
 func ToolButton(tool app.Tool) app.Component {
@@ -61,6 +64,22 @@ func ToolButton(tool app.Tool) app.Component {
 
 		if button.Clicked {
 			app.Apk.SelectedTool = tool
+		}
+
+		// User just clicked on the image tool
+		if app.Apk.SelectedTool == app.ToolImage && app.Apk.DroppingTexture == nil {
+			dir, err := zenity.SelectFile(
+				zenity.Title("Select the osu! lazer folder"),
+				zenity.FileFilter{
+					Patterns: []string{"*.png", "*.jpg", ".jpeg"},
+				},
+			)
+
+			if err == nil {
+				app.Apk.SetDroppingTexture(dir)
+			} else {
+				app.Apk.SelectedTool = app.ToolSelection
+			}
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height

@@ -19,8 +19,6 @@ type Rectangle struct {
 	Width  app.AnimatedProp
 	Height app.AnimatedProp
 	Color  app.AnimatedColor
-
-	InputValues map[string]string
 }
 
 func NewRectangle(id string, rect rl.Rectangle, index int) Rectangle {
@@ -37,11 +35,10 @@ func NewRectangle(id string, rect rl.Rectangle, index int) Rectangle {
 	}
 
 	return Rectangle{
-		Width:       app.NewAnimatedProp(float32(width), width_KEY),
-		Height:      app.NewAnimatedProp(float32(height), height_KEY),
-		Color:       app.NewAnimatedColor(217, 217, 217, 255),
-		Element:     app.NewElement(id, rl.NewVector2(rect.X, rect.Y), "Rectangle "+strconv.Itoa(index+1)),
-		InputValues: map[string]string{},
+		Width:   app.NewAnimatedProp(float32(width), width_KEY),
+		Height:  app.NewAnimatedProp(float32(height), height_KEY),
+		Color:   app.NewAnimatedColor(217, 217, 217, 255),
+		Element: app.NewElement(id, rl.NewVector2(rect.X, rect.Y), "Rectangle "+strconv.Itoa(index+1)),
 	}
 }
 
@@ -79,12 +76,11 @@ func (r *Rectangle) Rect(selectedFrame int) rl.Rectangle {
 	return rl.NewRectangle(x, y, r.Width.KeyFramePosition(selectedFrame), r.Height.KeyFramePosition(selectedFrame))
 }
 func (r *Rectangle) DrawComponent(mousePoint rl.Vector2) bool {
-	interactable := app.NewInteractable(r.Id)
+	r.Interactable = app.NewInteractable(r.Id)
 	rect := r.Rect(app.Apk.SelectedFrame)
-	interactable.Event(mousePoint, rect)
+	r.Interactable.Event(mousePoint, rect)
 	rl.DrawRectangleRec(rect, r.Color.Get(app.Apk.SelectedFrame))
-	r.Interactable = interactable
-	return interactable.State() == app.STATE_ACTIVE
+	return r.Interactable.State() == app.STATE_ACTIVE
 }
 
 // -----------
@@ -92,7 +88,7 @@ func (r *Rectangle) DrawComponent(mousePoint rl.Vector2) bool {
 // -----------
 
 func (r *Rectangle) DrawControls(rect rl.Rectangle) {
-	NewPanelLayout(rect).
+	components.NewPanelLayout(rect).
 		Add(components.NewAnimatedVector2(r.Position, r, "").Controls()).
 		Add(r.SizeControls()).
 		Add(components.NewAnimatedColor(&r.Color, r, "").Controls()).

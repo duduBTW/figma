@@ -12,6 +12,8 @@ type SelectedKeyframe struct {
 }
 
 type State struct {
+	DrawFrameHighlight func()
+
 	SelectedLayer    Layer
 	Layers           []Layer
 	SelectedKeyframe SelectedKeyframe
@@ -39,6 +41,8 @@ type State struct {
 	TimelineScroll float32
 
 	VisibleFrames [2]int
+
+	DroppingTexture *rl.Texture2D
 }
 
 func NewState() State {
@@ -92,4 +96,9 @@ func (state *State) NewLayerId() string {
 		id = newId
 	}
 	return strconv.Itoa(id + 1)
+}
+
+func (state *State) SetDroppingTexture(source string) {
+	texture := rl.LoadTexture(source)
+	state.DroppingTexture = &texture
 }
