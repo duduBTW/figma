@@ -47,10 +47,15 @@ func (i *Image) Rect(selectedFrame int) rl.Rectangle {
 	y := i.Position.Y.KeyFramePosition(selectedFrame)
 	return rl.NewRectangle(x, y, float32(i.Texture.Width), float32(i.Texture.Height))
 }
-func (i *Image) DrawComponent(mousePoint rl.Vector2) bool {
+func (i *Image) DrawComponent(mousePoint rl.Vector2, canvasRect rl.Rectangle) bool {
 	i.Interactable = app.NewInteractable(i.Id)
 	rect := i.Rect(app.Apk.SelectedFrame)
-	i.Interactable.Event(mousePoint, rect)
+
+	// Only updates the event if the mouse is inside the canvas
+	if rl.CheckCollisionPointRec(mousePoint, canvasRect) {
+		i.Interactable.Event(mousePoint, rect)
+	}
+
 	rl.DrawTexture(i.Texture, rect.ToInt32().X, rect.ToInt32().Y, rl.White)
 	return i.Interactable.State() == app.STATE_ACTIVE
 }

@@ -42,7 +42,7 @@ func (component *animatedPropComponent) keyFrameButton() app.Component {
 		animatedProp := component.prop
 		layer := component.layer
 		prefix := component.prefix
-		button := Button(layer.GetName()+animatedProp.Name+prefix, rl.NewVector2(rect.X, rect.Y), []app.Component{})
+		button := Button(layer.GetName()+animatedProp.Name+prefix, BUTTON_VARIANT_PRIMARY, rl.NewVector2(rect.X, rect.Y), []app.Component{})
 		if button.Clicked {
 			animatedProp.InsertKeyframe(float32(app.Apk.State.SelectedFrame), animatedProp.Base)
 		}
@@ -56,7 +56,7 @@ func (component *animatedPropComponent) inputEditableContent() app.Component {
 		inputValue := animatedProp.InputValue
 		layer := component.layer
 		prefix := component.prefix
-		updateValue := fmt.Sprint(animatedProp.KeyFramePosition(app.Apk.State.SelectedFrame))
+		updateValue := fmt.Sprint(int(animatedProp.KeyFramePosition(app.Apk.State.SelectedFrame)))
 		if inputValue == app.EMPTY {
 			inputValue = updateValue
 		}
@@ -84,7 +84,6 @@ func (component *animatedPropComponent) inputEditableContent() app.Component {
 			if animatedProp.InputValue == "" || inputValue == updateValue {
 				animatedProp.InputValue = app.EMPTY
 			} else {
-				fmt.Println(inputValue, updateValue)
 				var newIntValue, err = strconv.ParseFloat(animatedProp.InputValue, 32)
 				if err != nil {
 					animatedProp.InputValue = updateValue

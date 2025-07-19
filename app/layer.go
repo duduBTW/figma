@@ -7,7 +7,7 @@ import (
 type Layer interface {
 	GetName() string
 	GetElement() *Element
-	DrawComponent(mousePoint rl.Vector2) bool
+	DrawComponent(mousePoint rl.Vector2, canvasRect rl.Rectangle) bool
 	DrawControls(rect rl.Rectangle)
 	DrawTimeline() Component
 	State() InteractableState

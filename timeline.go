@@ -147,9 +147,17 @@ func TimelineControls() app.Component {
 		return buttonListLayout.Draw, buttonListLayout.Size.Width, buttonListLayout.Size.Height
 	}
 }
+
+func PlayButtonIcon() app.IconName {
+	if app.Apk.IsPlaying {
+		return app.ICON_PAUSE
+	}
+
+	return app.ICON_PLAY
+}
 func PlayButton() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		button := components.Button("play-button", rl.NewVector2(rect.X, rect.Y), []app.Component{})
+		button := components.Button("play-button", components.BUTTON_VARIANT_PRIMARY, rl.NewVector2(rect.X, rect.Y), []app.Component{components.Icon(PlayButtonIcon())})
 
 		if button.Clicked {
 			app.Apk.TogglePlay()

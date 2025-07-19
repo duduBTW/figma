@@ -6,13 +6,35 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+type ButtonVariant = string
+
+const (
+	BUTTON_VARIANT_PRIMARY = "primary"
+	BUTTON_VARIANT_GHOST   = "ghost"
+)
+
+type variantColor = map[app.InteractableState]rl.Color
+
+var variantColors = map[ButtonVariant]variantColor{
+	BUTTON_VARIANT_PRIMARY: {
+		app.STATE_INITIAL: rl.NewColor(12, 159, 233, 255),
+		app.STATE_HOT:     rl.NewColor(56, 183, 255, 255),
+		app.STATE_ACTIVE:  rl.NewColor(8, 117, 179, 255),
+	},
+	BUTTON_VARIANT_GHOST: {
+		app.STATE_INITIAL: rl.Fade(rl.White, 0),
+		app.STATE_HOT:     rl.Fade(rl.White, 0.1),
+		app.STATE_ACTIVE:  rl.Fade(rl.White, 0.2),
+	},
+}
+
 type ButtonInstance struct {
 	Draw    func()
 	Clicked bool
 	Rect    rl.Rectangle
 }
 
-func Button(id string, position rl.Vector2, children []app.Component) ButtonInstance {
+func Button(id string, variant ButtonVariant, position rl.Vector2, children []app.Component) ButtonInstance {
 	buttonInstance := ButtonInstance{}
 	interactable := app.NewInteractable(id)
 
@@ -29,14 +51,8 @@ func Button(id string, position rl.Vector2, children []app.Component) ButtonInst
 
 	containerRect := rl.NewRectangle(position.X, position.Y, fmath.Max(layout.Size.Width, 24), fmath.Max(layout.Size.Height, 24))
 	clicked := interactable.Event(rl.GetMousePosition(), containerRect)
-	var containerBackgroundColor = rl.Purple
-	switch interactable.State() {
-	case app.STATE_HOT:
-		containerBackgroundColor = rl.DarkPurple
-	case app.STATE_ACTIVE:
-		containerBackgroundColor = rl.Pink
-	}
 
+	var containerBackgroundColor = variantColors[variant][interactable.State()]
 	buttonInstance.Draw = func() {
 		DrawRectangleRoundedPixels(containerRect, 4, containerBackgroundColor)
 		layout.Draw()

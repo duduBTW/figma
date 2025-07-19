@@ -261,7 +261,6 @@ func InputEvent(rect rl.Rectangle, props InputProps) bool {
 
 	if !isFocused && isInside {
 		ui.HotId = id
-		rl.SetMouseCursor(rl.MouseCursorIBeam)
 	}
 
 	return false

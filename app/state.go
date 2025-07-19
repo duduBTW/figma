@@ -12,6 +12,8 @@ type SelectedKeyframe struct {
 }
 
 type State struct {
+	icons Icons
+
 	DrawFrameHighlight func()
 
 	SelectedLayer    Layer
@@ -51,6 +53,7 @@ func NewState() State {
 		TabOrder:      []string{},
 		Layers:        []Layer{},
 		VisibleFrames: [2]int{0, 240},
+		icons:         Icons{},
 	}
 }
 
@@ -101,4 +104,17 @@ func (state *State) NewLayerId() string {
 func (state *State) SetDroppingTexture(source string) {
 	texture := rl.LoadTexture(source)
 	state.DroppingTexture = &texture
+}
+
+func (state *State) Icon(name IconName) rl.Texture2D {
+	icon := state.icons[name]
+
+	// already loaded
+	if icon != nil {
+		return *icon
+	}
+
+	loadedIcon := loadIcon("D:\\Peronal\\figma\\assets\\icons\\" + string(name) + ".svg")
+	state.icons[name] = &loadedIcon
+	return loadedIcon
 }

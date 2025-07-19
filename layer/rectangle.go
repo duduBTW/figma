@@ -75,10 +75,15 @@ func (r *Rectangle) Rect(selectedFrame int) rl.Rectangle {
 	y := r.Position.Y.KeyFramePosition(selectedFrame)
 	return rl.NewRectangle(x, y, r.Width.KeyFramePosition(selectedFrame), r.Height.KeyFramePosition(selectedFrame))
 }
-func (r *Rectangle) DrawComponent(mousePoint rl.Vector2) bool {
+func (r *Rectangle) DrawComponent(mousePoint rl.Vector2, canvasRect rl.Rectangle) bool {
 	r.Interactable = app.NewInteractable(r.Id)
 	rect := r.Rect(app.Apk.SelectedFrame)
-	r.Interactable.Event(mousePoint, rect)
+
+	// Only updates the event if the mouse is inside the canvas
+	if rl.CheckCollisionPointRec(mousePoint, canvasRect) {
+		r.Interactable.Event(mousePoint, rect)
+	}
+
 	rl.DrawRectangleRec(rect, r.Color.Get(app.Apk.SelectedFrame))
 	return r.Interactable.State() == app.STATE_ACTIVE
 }

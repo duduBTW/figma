@@ -45,15 +45,18 @@ func (t *Text) DrawHighlight() {
 	rl.DrawRectangleLinesEx(rect, 2, rl.Blue)
 }
 
-func (t *Text) DrawComponent(mousePoint rl.Vector2) bool {
-	interactable := app.NewInteractable(t.Element.Id)
+func (t *Text) DrawComponent(mousePoint rl.Vector2, canvasRect rl.Rectangle) bool {
+	t.Interactable = app.NewInteractable(t.Element.Id)
 	rect := t.Rect(app.Apk.SelectedFrame)
-	interactable.Event(mousePoint, rect)
+
+	// Only updates the event if the mouse is inside the canvas
+	if rl.CheckCollisionPointRec(mousePoint, canvasRect) {
+		t.Interactable.Event(mousePoint, rect)
+	}
 	fontSize := t.FontSize.KeyFramePosition(app.Apk.SelectedFrame)
 	color := t.Color.Get(app.Apk.SelectedFrame)
 	rl.DrawText(t.TextContent, rect.ToInt32().X, rect.ToInt32().Y, int32(fontSize), color)
-	t.Element.Interactable = interactable
-	return interactable.State() == app.STATE_ACTIVE
+	return t.Interactable.State() == app.STATE_ACTIVE
 }
 
 func (t *Text) Rect(selectedFrame int) rl.Rectangle {

@@ -50,32 +50,27 @@ func ToolDock() app.Component {
 	}
 }
 
-var toolButtonLabels = map[app.Tool]string{
-	app.ToolSelection: "S",
-	app.ToolRectangle: "R",
-	app.ToolText:      "T",
-	app.ToolImage:     "I",
+var toolButtonIcons = map[app.Tool]app.IconName{
+	app.ToolSelection: app.ICON_MOUSE_POINTER,
+	app.ToolRectangle: app.ICON_SQUARE,
+	app.ToolText:      app.ICON_TYPE,
+	app.ToolImage:     app.ICON_IMAGE,
 }
 
 func ToolButton(tool app.Tool) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		button := components.Button("tool-"+string(tool), rl.NewVector2(rect.X, rect.Y), []app.Component{Content(tool)})
+		buttonVariant := components.BUTTON_VARIANT_GHOST
+		if tool == app.Apk.SelectedTool {
+			buttonVariant = components.BUTTON_VARIANT_PRIMARY
+		}
+
+		button := components.Button("tool-"+string(tool), buttonVariant, rl.NewVector2(rect.X, rect.Y), []app.Component{components.Icon(toolButtonIcons[tool])})
 
 		if button.Clicked {
 			app.Apk.SelectedTool = tool
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height
-	}
-}
-
-func Content(tool app.Tool) app.Component {
-	return func(avaliablePosition rl.Rectangle) (func(), float32, float32) {
-		textContet := toolButtonLabels[tool]
-		var fontSize int32 = 16
-		return func() {
-			rl.DrawText(textContet, int32(avaliablePosition.X), int32(avaliablePosition.Y), fontSize, rl.White)
-		}, float32(rl.MeasureText(textContet, fontSize)), float32(fontSize)
 	}
 }
 

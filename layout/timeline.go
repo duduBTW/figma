@@ -38,7 +38,7 @@ func (timelineLayout) Panel(rect rl.Rectangle) *app.Layout {
 	return app.
 		NewLayout().
 		PositionRect(rect).
-		Padding(app.NewPadding().Start(32)).
+		Padding(app.NewPadding().Start(24)).
 		Row().
 		Gap(16).
 		Width(rect.Width,
