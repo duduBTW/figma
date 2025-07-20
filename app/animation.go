@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/dudubtw/figma/fmath"
@@ -20,8 +19,15 @@ func NewAnimatedProp(defaultValue float32, name string) AnimatedProp {
 	return AnimatedProp{Base: defaultValue, SortedKeyframes: [][2]float32{}, KeyframesMap: map[float32]float32{}, Name: name, InputValue: EMPTY}
 }
 
+func (prop *AnimatedProp) SortedKeyframesTimeline() []float32 {
+	result := []float32{}
+	for _, keyframe := range prop.SortedKeyframes {
+		result = append(result, keyframe[0])
+	}
+	return result
+}
+
 func (prop *AnimatedProp) InsertKeyframe(key, value float32) {
-	fmt.Println("Inserting keyframe!", key, value, prop)
 	prop.SortedKeyframes = append(prop.SortedKeyframes, [2]float32{key, value})
 	sort.Slice(prop.SortedKeyframes, func(i, j int) bool {
 		return prop.SortedKeyframes[i][0] < prop.SortedKeyframes[j][0]

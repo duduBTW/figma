@@ -50,10 +50,10 @@ func (component *animatedVector2Component) Timeline() []app.Component {
 	}
 
 	if component.x.CanDrawTimeline() {
-		components = append(components, TimelineRow("Position X", component.x.Input(), component.prop.X.SortedKeyframes))
+		components = append(components, TimelineRow("Position X", component.x.Input(), component.prop.X.SortedKeyframesTimeline()))
 	}
 	if component.y.CanDrawTimeline() {
-		components = append(components, TimelineRow("Position Y", component.y.Input(), component.prop.Y.SortedKeyframes))
+		components = append(components, TimelineRow("Position Y", component.y.Input(), component.prop.Y.SortedKeyframesTimeline()))
 	}
 	return components
 }

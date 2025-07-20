@@ -101,7 +101,12 @@ func (t *Text) DrawTimeline() app.Component {
 		layout.Add(components.NewAnimatedVector2(t.Position, t, prefix).Timeline()...)
 		fontSizeComponent := components.NewAnimatedProp(&t.FontSize, t, prefix)
 		if fontSizeComponent.CanDrawTimeline() {
-			layout.Add(components.TimelineRow("Font size", fontSizeComponent.Input(), t.FontSize.SortedKeyframes))
+			layout.Add(components.TimelineRow("Font size", fontSizeComponent.Input(), t.FontSize.SortedKeyframesTimeline()))
+		}
+
+		colorComponent := components.NewAnimatedColor(&t.Color, t, prefix)
+		if colorComponent.CanDrawTimeline() {
+			layout.Add(components.TimelineRow("Color", colorComponent.Input(), t.Color.Red.SortedKeyframesTimeline()))
 		}
 
 		return layout.Draw, layout.Size.Width, layout.Size.Height

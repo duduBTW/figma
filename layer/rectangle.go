@@ -132,12 +132,17 @@ func (r *Rectangle) DrawTimeline() app.Component {
 
 		widthComponent := components.NewAnimatedProp(&r.Width, r, prefix)
 		if widthComponent.CanDrawTimeline() {
-			layout.Add(components.TimelineRow("Width", widthComponent.Input(), r.Width.SortedKeyframes))
+			layout.Add(components.TimelineRow("Width", widthComponent.Input(), r.Width.SortedKeyframesTimeline()))
 		}
 
 		heightComponent := components.NewAnimatedProp(&r.Height, r, prefix)
 		if heightComponent.CanDrawTimeline() {
-			layout.Add(components.TimelineRow("Height", heightComponent.Input(), r.Height.SortedKeyframes))
+			layout.Add(components.TimelineRow("Height", heightComponent.Input(), r.Height.SortedKeyframesTimeline()))
+		}
+
+		colorComponent := components.NewAnimatedColor(&r.Color, r, prefix)
+		if colorComponent.CanDrawTimeline() {
+			layout.Add(components.TimelineRow("Color", colorComponent.Input(), r.Color.Red.SortedKeyframesTimeline()))
 		}
 
 		return layout.Draw, layout.Size.Width, layout.Size.Height

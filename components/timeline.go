@@ -14,7 +14,7 @@ func TimelinePanelLabel(text string) app.Component {
 		}, 0, float32(fontSize)
 	}
 }
-func TimelineRow(label string, inputs app.Component, keyframes [][2]float32) app.Component {
+func TimelineRow(label string, inputs app.Component, keyframes []float32) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		row := layout.Timeline.
 			Row(rect).
@@ -31,7 +31,7 @@ func TimelinePanel(label string, inputs app.Component) app.Component {
 		return row.Draw, 0, row.Size.Height
 	}
 }
-func TimelineFrames(keyframes [][2]float32) app.Component {
+func TimelineFrames(keyframes []float32) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		return func() {
 			y := rect.ToInt32().Y + 11
@@ -39,7 +39,7 @@ func TimelineFrames(keyframes [][2]float32) app.Component {
 
 			if len(keyframes) > 0 {
 				for _, keyframe := range keyframes {
-					x := app.Apk.State.GetXTimelineFrame(rect, keyframe[0])
+					x := app.Apk.State.GetXTimelineFrame(rect, keyframe)
 					keyframeRect := rl.NewRectangle(x, float32(y), 10, 10)
 					rl.DrawRectanglePro(
 						keyframeRect,        // A 10×20 rectangle

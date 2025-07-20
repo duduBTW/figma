@@ -53,12 +53,12 @@ func (component *animatedPropComponent) keyFrameButton() app.Component {
 func (component *animatedPropComponent) inputEditableContent() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		animatedProp := component.prop
-		inputValue := animatedProp.InputValue
+		tempValue := animatedProp.InputValue
 		layer := component.layer
 		prefix := component.prefix
 		updateValue := fmt.Sprint(int(animatedProp.KeyFramePosition(app.Apk.State.SelectedFrame)))
-		if inputValue == app.EMPTY {
-			inputValue = updateValue
+		if tempValue == app.EMPTY {
+			tempValue = updateValue
 		}
 
 		input := Input(InputProps{
@@ -66,22 +66,18 @@ func (component *animatedPropComponent) inputEditableContent() app.Component {
 			Y:          rect.Y,
 			Id:         layer.GetElement().Id + animatedProp.Name + prefix,
 			Width:      rect.Width,
-			Value:      inputValue,
+			Value:      tempValue,
 			MousePoint: rl.GetMousePosition(),
 		})
 
-		if input.IsFocusing {
-			animatedProp.InputValue = input.Value
-		}
-
-		if input.State == app.STATE_ACTIVE {
+		if input.IsFocusing || input.State == app.STATE_ACTIVE {
 			animatedProp.InputValue = input.Value
 		}
 
 		if input.IsBluring || input.HasSubmitted {
 			input.Blur()
 
-			if animatedProp.InputValue == "" || inputValue == updateValue {
+			if animatedProp.InputValue == "" || tempValue == updateValue {
 				animatedProp.InputValue = app.EMPTY
 			} else {
 				var newIntValue, err = strconv.ParseFloat(animatedProp.InputValue, 32)
