@@ -24,6 +24,7 @@ const (
 	ICON_IMAGE         IconName = "image"
 	ICON_PLAY          IconName = "play"
 	ICON_PAUSE         IconName = "pause"
+	ICON_CHART_SPLINE  IconName = "chart-spline"
 
 	ICON_WIDTH  = 16
 	ICON_HEIGHT = 16

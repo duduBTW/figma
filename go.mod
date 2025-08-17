@@ -5,6 +5,7 @@ go 1.23.4
 require github.com/gen2brain/raylib-go/raylib v0.0.0-20250409052854-a4292f0f0412
 
 require (
+	github.com/MichaelMackus/rltextkerner v0.0.0-20240317051610-39ddb0294743 // indirect
 	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect

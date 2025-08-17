@@ -8,7 +8,7 @@ import (
 
 type SelectedKeyframe struct {
 	LayerId  string
-	Keyframe [2]float32
+	Keyframe float32
 }
 
 type State struct {
@@ -16,9 +16,10 @@ type State struct {
 
 	DrawFrameHighlight func()
 
-	SelectedLayer    Layer
-	Layers           []Layer
-	SelectedKeyframe SelectedKeyframe
+	SelectedLayer        Layer
+	Layers               []Layer
+	SelectedKeyframe     SelectedKeyframe
+	SelectedAnimatedProp *AnimatedProp
 
 	FocusedId string
 	ActiveId  string
@@ -39,21 +40,25 @@ type State struct {
 
 	TabOrder []string
 
-	FrameWidth     float32
-	TimelineScroll float32
+	FrameWidth            float32
+	TimelineScroll        float32
+	TimelineCurveSelected bool
 
 	VisibleFrames [2]int
 
 	DroppingTexture *rl.Texture2D
+
+	FramesRect rl.Rectangle
 }
 
 func NewState() State {
 	return State{
-		SelectedTool:  ToolSelection,
-		TabOrder:      []string{},
-		Layers:        []Layer{},
-		VisibleFrames: [2]int{0, 240},
-		icons:         Icons{},
+		SelectedTool:          ToolSelection,
+		TabOrder:              []string{},
+		Layers:                []Layer{},
+		VisibleFrames:         [2]int{0, 240},
+		icons:                 Icons{},
+		TimelineCurveSelected: false,
 	}
 }
 
@@ -86,9 +91,14 @@ func (state *State) ScrollTimeline() {
 	state.TimelineScroll -= rl.GetMouseWheelMove() * scrollSpeed
 }
 
+func (state *State) SetSelectedLayer(newLayer Layer) {
+	state.SelectedLayer = newLayer
+	state.SelectedAnimatedProp = &newLayer.GetElement().Position.X
+}
+
 func (state *State) AppendLayer(newLayer Layer) {
 	state.Layers = append(state.Layers, newLayer)
-	state.SelectedLayer = newLayer
+	state.SetSelectedLayer(newLayer)
 	state.SelectedTool = ToolSelection
 }
 
@@ -117,4 +127,8 @@ func (state *State) Icon(name IconName) rl.Texture2D {
 	loadedIcon := loadIcon("D:\\Peronal\\figma\\assets\\icons\\" + string(name) + ".svg")
 	state.icons[name] = &loadedIcon
 	return loadedIcon
+}
+
+func (state *State) ToggleCurveSelected() {
+	state.TimelineCurveSelected = !state.TimelineCurveSelected
 }

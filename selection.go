@@ -60,11 +60,11 @@ func Selection(canvas rl.Rectangle) {
 	}
 
 	if direction != 1 && x != 0 {
-		element.Position.X.Set(dragAnchor.X + x)
+		element.Position.X.SetCurrent(dragAnchor.X + x)
 	}
 
 	if direction != -1 && y != 0 {
-		element.Position.Y.Set(dragAnchor.Y + y)
+		element.Position.Y.SetCurrent(dragAnchor.Y + y)
 	}
 }
 

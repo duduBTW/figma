@@ -4,19 +4,30 @@ import (
 	"sort"
 
 	"github.com/dudubtw/figma/fmath"
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type AnimatedProp struct {
-	Name            string
-	Base            float32
-	SortedKeyframes [][2]float32
-	KeyframesMap    map[float32]float32
+	Name               string
+	Base               float32
+	SortedKeyframes    [][2]float32
+	KeyframesMap       map[float32]float32
+	KeyFrameCurveStart map[float32]rl.Vector2
+	KeyFrameCurveEnd   map[float32]rl.Vector2
 
 	InputValue string
 }
 
 func NewAnimatedProp(defaultValue float32, name string) AnimatedProp {
-	return AnimatedProp{Base: defaultValue, SortedKeyframes: [][2]float32{}, KeyframesMap: map[float32]float32{}, Name: name, InputValue: EMPTY}
+	return AnimatedProp{
+		Base:               defaultValue,
+		SortedKeyframes:    [][2]float32{},
+		KeyframesMap:       map[float32]float32{},
+		Name:               name,
+		InputValue:         EMPTY,
+		KeyFrameCurveStart: map[float32]rl.Vector2{},
+		KeyFrameCurveEnd:   map[float32]rl.Vector2{},
+	}
 }
 
 func (prop *AnimatedProp) SortedKeyframesTimeline() []float32 {
@@ -35,13 +46,13 @@ func (prop *AnimatedProp) InsertKeyframe(key, value float32) {
 	prop.KeyframesMap[key] = value
 }
 
-func (prop *AnimatedProp) Set(value float32) {
+// Sets value
+func (prop *AnimatedProp) Set(key, value float32) {
 	if len(prop.KeyframesMap) == 0 {
 		prop.Base = value
 		return
 	}
 
-	key := float32(Apk.State.SelectedFrame)
 	for index, kf := range prop.SortedKeyframes {
 		if kf[0] == key {
 			prop.SortedKeyframes[index][1] = value
@@ -51,6 +62,12 @@ func (prop *AnimatedProp) Set(value float32) {
 	}
 
 	prop.InsertKeyframe(key, value)
+}
+
+// Sets value to the current selected frame
+func (prop *AnimatedProp) SetCurrent(value float32) {
+	key := float32(Apk.State.SelectedFrame)
+	prop.Set(key, value)
 }
 
 // MAYBE CACHE THIS SO YOU DONT HAVE TO RUN EVERY TIME IF NOTHING CHANGED
@@ -72,7 +89,38 @@ func (animatedProp AnimatedProp) KeyFramePosition(selectedFrame int) float32 {
 				}
 			}
 			framePos := fmath.InverseLerp(framesAround[0][0], framesAround[1][0], float32(selectedFrame))
-			prop = fmath.Lerp(framesAround[0][1], framesAround[1][1], fmath.Clamp(framePos, 0, 1))
+
+			key := framesAround[0][0]
+			startOffset := animatedProp.KeyFrameCurveStart[key]
+			endOffset := animatedProp.KeyFrameCurveEnd[key]
+			if startOffset.X != 0 || startOffset.Y != 0 || endOffset.X != 0 || endOffset.Y != 0 {
+				var min float64 = 9999
+				var max float64 = -9999
+				for _, frame := range animatedProp.SortedKeyframes {
+					value := float64(frame[1])
+					if value > max {
+						max = value
+					}
+
+					if value < min {
+						min = value
+					}
+				}
+				y := NewLinear().Domain(float64(Apk.FramesRect.Y), float64(Apk.FramesRect.Y+Apk.FramesRect.Height)).Range(min, max)
+
+				pos := rl.NewVector2(Apk.GetXTimelineFrame(Apk.FramesRect, framesAround[0][0]), float32(y.Invert(float64(framesAround[0][1]))))
+				nextFramePos := rl.NewVector2(Apk.GetXTimelineFrame(Apk.FramesRect, framesAround[1][0]), float32(y.Invert(float64(framesAround[1][1]))))
+				prop = float32(y.Scale(float64(CubicBezierPoint(
+					pos,
+					rl.NewVector2(pos.X+startOffset.X, pos.Y+startOffset.Y),
+					rl.NewVector2(nextFramePos.X+endOffset.X, nextFramePos.Y+endOffset.Y),
+					nextFramePos,
+					framePos,
+				).Y)))
+			} else {
+				prop = fmath.Lerp(framesAround[0][1], framesAround[1][1], fmath.Clamp(framePos, 0, 1))
+			}
+
 		}
 
 	} else if len(keyframes) == 1 {

@@ -42,7 +42,7 @@ func CanvasContent(rect rl.Rectangle) {
 	for _, l := range app.Apk.Layers {
 		isClicked := l.DrawComponent(rl.GetScreenToWorld2D(rl.GetMousePosition(), camera), rect)
 		if isClicked {
-			app.Apk.SelectedLayer = l
+			app.Apk.SetSelectedLayer(l)
 		}
 
 		if l.State() == app.STATE_HOT || l.State() == app.STATE_ACTIVE {

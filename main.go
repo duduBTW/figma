@@ -19,8 +19,6 @@ func main() {
 
 	camera.Zoom = 1
 
-	// IconTexture = LoadSVGAsTexture("D:\\Peronal\\figma\\assets\\icons\\type.svg", 16, 16)
-
 	for !rl.WindowShouldClose() {
 		// ui.ResetTabOrder()
 		app.Apk.Frame()

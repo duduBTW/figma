@@ -85,7 +85,7 @@ func (component *animatedPropComponent) inputEditableContent() app.Component {
 					animatedProp.InputValue = updateValue
 				}
 
-				animatedProp.Set(float32(newIntValue))
+				animatedProp.SetCurrent(float32(newIntValue))
 				animatedProp.InputValue = app.EMPTY
 			}
 
