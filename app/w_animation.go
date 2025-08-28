@@ -11,9 +11,9 @@ type AnimatedProp struct {
 	Name               string
 	Base               float32
 	SortedKeyframes    [][2]float32
-	KeyframesMap       map[float32]float32
-	KeyFrameCurveStart map[float32]rl.Vector2
-	KeyFrameCurveEnd   map[float32]rl.Vector2
+	KeyframesMap       Float32Map
+	KeyFrameCurveStart Float32Vec2Map
+	KeyFrameCurveEnd   Float32Vec2Map
 
 	InputValue string
 }
@@ -66,7 +66,7 @@ func (prop *AnimatedProp) Set(key, value float32) {
 
 // Sets value to the current selected frame
 func (prop *AnimatedProp) SetCurrent(value float32) {
-	key := float32(Apk.State.SelectedFrame)
+	key := float32(Apk.Workplace.SelectedFrame)
 	prop.Set(key, value)
 }
 
@@ -106,10 +106,10 @@ func (animatedProp AnimatedProp) KeyFramePosition(selectedFrame int) float32 {
 						min = value
 					}
 				}
-				y := NewLinear().Domain(float64(Apk.FramesRect.Y), float64(Apk.FramesRect.Y+Apk.FramesRect.Height)).Range(min, max)
+				y := NewLinear().Domain(float64(Apk.Workplace.FramesRect.Y), float64(Apk.Workplace.FramesRect.Y+Apk.Workplace.FramesRect.Height)).Range(min, max)
 
-				pos := rl.NewVector2(Apk.GetXTimelineFrame(Apk.FramesRect, framesAround[0][0]), float32(y.Invert(float64(framesAround[0][1]))))
-				nextFramePos := rl.NewVector2(Apk.GetXTimelineFrame(Apk.FramesRect, framesAround[1][0]), float32(y.Invert(float64(framesAround[1][1]))))
+				pos := rl.NewVector2(Apk.Workplace.GetXTimelineFrame(Apk.Workplace.FramesRect, framesAround[0][0]), float32(y.Invert(float64(framesAround[0][1]))))
+				nextFramePos := rl.NewVector2(Apk.Workplace.GetXTimelineFrame(Apk.Workplace.FramesRect, framesAround[1][0]), float32(y.Invert(float64(framesAround[1][1]))))
 				prop = float32(y.Scale(float64(CubicBezierPoint(
 					pos,
 					rl.NewVector2(pos.X+startOffset.X, pos.Y+startOffset.Y),

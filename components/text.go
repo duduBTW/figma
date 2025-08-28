@@ -2,14 +2,18 @@ package components
 
 import (
 	"github.com/dudubtw/figma/app"
+	ds "github.com/dudubtw/figma/design-system"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func Text(text string, fontSize int32) app.Component {
+func Typography(text string, fontSize ds.DsFontSize, weight ds.DsFontWeight, color ds.DsColor) app.Component {
+	font := app.Apk.GetFont(fontSize, weight)
+	var spacing float32 = 0
+
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		width := rl.MeasureText(text, fontSize)
+		size := rl.MeasureTextEx(font, text, float32(fontSize), spacing)
 		return func() {
-			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y, fontSize, rl.White)
-		}, float32(width), float32(fontSize)
+			rl.DrawTextEx(font, text, rl.NewVector2(rect.X, rect.Y), float32(fontSize), spacing, color)
+		}, size.X, size.Y
 	}
 }

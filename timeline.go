@@ -62,16 +62,16 @@ func Blank() app.Component {
 // FIX THIS!!
 func TimelineFrameController() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		totalFrames := int(float32((app.Apk.VisibleFrames[1] - app.Apk.VisibleFrames[0])) * 0.1)
-		totalFrames2 := app.Apk.VisibleFrames[1] - app.Apk.VisibleFrames[0]
+		totalFrames := int(float32((app.Apk.Workplace.VisibleFrames[1] - app.Apk.Workplace.VisibleFrames[0])) * 0.1)
+		totalFrames2 := app.Apk.Workplace.VisibleFrames[1] - app.Apk.Workplace.VisibleFrames[0]
 
 		frameWidth := rect.Width * 0.1
-		app.Apk.FrameWidth = rect.Width / float32(totalFrames2)
+		app.Apk.Workplace.FrameWidth = rect.Width / float32(totalFrames2)
 
 		smallestMousePos := math.MaxFloat64
 		smallestFrame := 0
 		for i := 0; i <= totalFrames2; i++ {
-			var x int32 = int32(rect.X + app.Apk.FrameWidth*float32(i) + 1)
+			var x int32 = int32(rect.X + app.Apk.Workplace.FrameWidth*float32(i) + 1)
 			mousePos := math.Abs(float64(rl.GetMousePosition().X) - float64(x))
 			if mousePos < smallestMousePos {
 				smallestMousePos = mousePos
@@ -84,7 +84,7 @@ func TimelineFrameController() app.Component {
 		interactable := app.NewInteractable("timeline-frame-controller")
 		if interactable.Event(rl.GetMousePosition(), rect2) ||
 			interactable.State() == app.STATE_ACTIVE {
-			app.Apk.SelectedFrame = smallestFrame
+			app.Apk.Workplace.SelectedFrame = smallestFrame
 		}
 
 		return func() {
@@ -103,7 +103,7 @@ func FramesRect(rect rl.Rectangle) rl.Rectangle {
 }
 
 func TimelineBotttomPart() app.Component {
-	if app.Apk.TimelineCurveSelected {
+	if app.Apk.Workplace.TimelineCurveSelected {
 		return TimelineBotttomPartCurve()
 	}
 
@@ -114,11 +114,11 @@ func TimelineBotttomPartCurve() app.Component {
 		return func() {
 			DrawSelectedFrameIndicator(rect)
 
-			if app.Apk.SelectedLayer == nil {
+			if app.Apk.Workplace.SelectedLayer == nil {
 				return
 			}
 
-			animatedProp := app.Apk.SelectedAnimatedProp
+			animatedProp := app.Apk.Workplace.SelectedAnimatedProp
 			if len(animatedProp.SortedKeyframes) < 1 {
 				return
 			}
@@ -145,7 +145,7 @@ func TimelineBotttomPartCurve() app.Component {
 			y := app.NewLinear().Domain(float64(framesRect.Y), float64(framesRect.Y+framesRect.Height)).Range(min, max)
 			mousePos := rl.GetMousePosition()
 
-			app.Apk.FramesRect = framesRect
+			app.Apk.Workplace.FramesRect = framesRect
 
 			for index, frame := range animatedProp.SortedKeyframes {
 				pos := GetCirclePosition(frame, y)
@@ -154,7 +154,7 @@ func TimelineBotttomPartCurve() app.Component {
 				interactable := app.NewInteractable("corner-control" + strconv.Itoa(index))
 				isClicked := interactable.Event(mousePos, rl.NewRectangle(pos.X-4, pos.Y-4, 8, 8))
 				if isClicked || interactable.State() == app.STATE_ACTIVE {
-					app.Apk.SelectedLayer.GetElement().Position.X.Set(frame[0], float32(y.Scale(float64(mousePos.Y))))
+					app.Apk.Workplace.SelectedLayer.GetElement().Position.X.Set(frame[0], float32(y.Scale(float64(mousePos.Y))))
 				}
 
 				rl.DrawCircle(int32(pos.X), int32(pos.Y), 4, rl.Red)
@@ -178,7 +178,7 @@ func TimelineBotttomPartCurve() app.Component {
 }
 
 func GetCirclePosition(frame [2]float32, y *app.Linear) rl.Vector2 {
-	return rl.NewVector2(app.Apk.GetXTimelineFrame(app.Apk.FramesRect, frame[0]), float32(y.Invert(float64(frame[1]))))
+	return rl.NewVector2(app.Apk.Workplace.GetXTimelineFrame(app.Apk.Workplace.FramesRect, frame[0]), float32(y.Invert(float64(frame[1]))))
 }
 
 func DrawHandler(id string, frame [2]float32, index int, circlePosition rl.Vector2, keyFrameCurves map[float32]rl.Vector2, positionOffset, startLimit, endLimit float32) rl.Vector2 {
@@ -197,7 +197,7 @@ func DrawHandler(id string, frame [2]float32, index int, circlePosition rl.Vecto
 		}
 
 		y := keyFrameCurve.Y
-		if mousePos.Y >= app.Apk.FramesRect.Y && mousePos.Y <= app.Apk.FramesRect.Y+app.Apk.FramesRect.Height {
+		if mousePos.Y >= app.Apk.Workplace.FramesRect.Y && mousePos.Y <= app.Apk.Workplace.FramesRect.Y+app.Apk.Workplace.FramesRect.Height {
 			y = mousePos.Y - circlePosition.Y
 		}
 
@@ -212,10 +212,10 @@ func DrawHandler(id string, frame [2]float32, index int, circlePosition rl.Vecto
 
 func TimelineBotttomPartFrames() app.Component {
 	return func(current rl.Rectangle) (func(), float32, float32) {
-		app.Apk.ScrollTimeline()
+		app.Apk.Workplace.ScrollTimeline()
 
 		position := current
-		position.Y -= app.Apk.TimelineScroll
+		position.Y -= app.Apk.Workplace.TimelineScroll
 
 		layout := app.
 			NewLayout().
@@ -224,7 +224,7 @@ func TimelineBotttomPartFrames() app.Component {
 			Gap(16).
 			Width(current.Width)
 
-		for _, layer := range app.Apk.Layers {
+		for _, layer := range app.Apk.Workplace.Layers {
 			layout.Add(layer.DrawTimeline())
 		}
 
@@ -241,7 +241,7 @@ func DrawSelectedFrameIndicator(rect rl.Rectangle) {
 	framesRect := FramesRect(rect)
 	rl.DrawRectanglePro(framesRect, rl.NewVector2(0, 0), 0, rl.Fade(rl.Black, 0.4))
 
-	x := app.Apk.GetXTimelineFrame(framesRect, float32(app.Apk.SelectedFrame))
+	x := app.Apk.Workplace.GetXTimelineFrame(framesRect, float32(app.Apk.Workplace.SelectedFrame))
 	rl.DrawLine(int32(x), framesRect.ToInt32().Y-10, int32(x), framesRect.ToInt32().Y+framesRect.ToInt32().Height, rl.Blue)
 	rl.DrawRectanglePro(
 		rl.NewRectangle(x, framesRect.Y-15, 11, 11), // A 10×20 rectangle
@@ -265,7 +265,7 @@ func TimelineControls() app.Component {
 }
 
 func CanvasButtonVariant() components.ButtonVariant {
-	if app.Apk.TimelineCurveSelected {
+	if app.Apk.Workplace.TimelineCurveSelected {
 		return components.BUTTON_VARIANT_PRIMARY
 	}
 
@@ -275,7 +275,7 @@ func CurveButton() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		button := components.Button("curve-button", CanvasButtonVariant(), rl.NewVector2(rect.X, rect.Y), []app.Component{components.Icon(app.ICON_CHART_SPLINE)})
 		if button.Clicked {
-			app.Apk.ToggleCurveSelected()
+			app.Apk.Workplace.ToggleCurveSelected()
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height
@@ -283,7 +283,7 @@ func CurveButton() app.Component {
 }
 
 func PlayButtonIcon() app.IconName {
-	if app.Apk.IsPlaying {
+	if app.Apk.Workplace.IsPlaying {
 		return app.ICON_PAUSE
 	}
 
@@ -293,7 +293,7 @@ func PlayButton() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		button := components.Button("play-button", components.BUTTON_VARIANT_GHOST, rl.NewVector2(rect.X, rect.Y), []app.Component{components.Icon(PlayButtonIcon())})
 		if button.Clicked {
-			app.Apk.TogglePlay()
+			app.Apk.Workplace.TogglePlay()
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height

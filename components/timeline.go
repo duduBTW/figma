@@ -2,17 +2,13 @@ package components
 
 import (
 	"github.com/dudubtw/figma/app"
+	ds "github.com/dudubtw/figma/design-system"
 	"github.com/dudubtw/figma/layout"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func TimelinePanelLabel(text string) app.Component {
-	var fontSize int32 = 14
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		return func() {
-			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y, fontSize, rl.White)
-		}, 0, float32(fontSize)
-	}
+	return Typography(text, ds.FONT_SIZE, ds.FONT_WEIGHT_MEDIUM, ds.T2_COLOR_CONTENT)
 }
 func TimelineRow(label string, inputs app.Component, animatedProp app.AnimatedProp) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
@@ -40,11 +36,11 @@ func TimelineFrames(animatedProp app.AnimatedProp) app.Component {
 
 			if len(keyframes) > 0 {
 				for _, keyframe := range keyframes {
-					layerId := app.Apk.SelectedLayer.GetElement().Id
-					x := app.Apk.State.GetXTimelineFrame(rect, keyframe)
+					layerId := app.Apk.Workplace.SelectedLayer.GetElement().Id
+					x := app.Apk.Workplace.GetXTimelineFrame(rect, keyframe)
 					keyframeRect := rl.NewRectangle(x, float32(y), 10, 10)
 					color := rl.Blue
-					if app.Apk.SelectedKeyframe.Keyframe == keyframe && app.Apk.SelectedKeyframe.LayerId == layerId {
+					if app.Apk.Workplace.SelectedKeyframe.Keyframe == keyframe && app.Apk.Workplace.SelectedKeyframe.LayerId == layerId {
 						color = rl.White
 					}
 					rl.DrawRectanglePro(
@@ -55,8 +51,8 @@ func TimelineFrames(animatedProp app.AnimatedProp) app.Component {
 					)
 
 					if rl.CheckCollisionPointRec(rl.GetMousePosition(), rl.NewRectangle(keyframeRect.X-5, keyframeRect.Y-5, keyframeRect.Width, keyframeRect.Height)) && rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
-						app.Apk.SelectedKeyframe = app.SelectedKeyframe{LayerId: layerId, Keyframe: keyframe}
-						app.Apk.SelectedAnimatedProp = &animatedProp
+						app.Apk.Workplace.SelectedKeyframe = app.SelectedKeyframe{LayerId: layerId, Keyframe: keyframe}
+						app.Apk.Workplace.SelectedAnimatedProp = &animatedProp
 					}
 				}
 			}
@@ -64,18 +60,23 @@ func TimelineFrames(animatedProp app.AnimatedProp) app.Component {
 	}
 }
 
-func TimelinePanelTitle(text string, layer app.Layer) app.Component {
-	var fontSize int32 = 16
-	var height = float32(fontSize)
+func TimelinePanelTitle(iconName app.IconName, text string, layer app.Layer) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
-		width := float32(rl.MeasureText(text, fontSize))
+		layout := app.NewLayout().
+			Row().
+			PositionRect(rect).
+			Gap(ds.SPACING_1).
+			Padding(app.NewPadding().Bottom(ds.SPACING_2)).
+			Width(rect.Width).
+			Add(Icon(iconName)).
+			Add(Typography(text, ds.FONT_SIZE_LG, ds.FONT_WEIGHT_MEDIUM, ds.T2_COLOR_CONTENT_ACCENT))
+
 		interractable := app.NewInteractable(layer.GetName() + "panel-item")
-		if interractable.Event(rl.GetMousePosition(), rl.NewRectangle(rect.X, rect.Y, width, height)) {
-			app.Apk.SetSelectedLayer(layer)
+		elementRect := rl.NewRectangle(rect.X, rect.Y, rect.Width, layout.Size.Height)
+		if interractable.Event(rl.GetMousePosition(), elementRect) {
+			app.Apk.Workplace.SetSelectedLayer(layer)
 		}
 
-		return func() {
-			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y, fontSize, rl.White)
-		}, width, height
+		return layout.Draw, elementRect.Width, elementRect.Height
 	}
 }

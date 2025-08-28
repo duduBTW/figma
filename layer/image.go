@@ -11,14 +11,19 @@ import (
 
 type Image struct {
 	app.Element
+	Width  app.AnimatedProp
+	Height app.AnimatedProp
 
-	Texture rl.Texture2D
+	Path string
 }
 
-func NewImage(id string, position rl.Vector2, texture rl.Texture2D, index int) Image {
+func NewImage(id string, position rl.Vector2, path string, index int) Image {
+	texture := app.Apk.Workplace.LoadImagePath(path)
 	return Image{
-		Element: app.NewElement(id, position, "Image "+strconv.Itoa(index+1)),
-		Texture: texture,
+		Width:   app.NewAnimatedProp(float32(texture.Width), width_KEY),
+		Height:  app.NewAnimatedProp(float32(texture.Height), height_KEY),
+		Element: app.NewElement(id, position, "Image "+strconv.Itoa(index+1), "image"),
+		Path:    path,
 	}
 }
 
@@ -29,7 +34,7 @@ func (i *Image) GetElement() *app.Element {
 	return &i.Element
 }
 func (i *Image) DrawHighlight() {
-	rect := i.Rect(app.Apk.State.SelectedFrame)
+	rect := i.Rect(app.Apk.Workplace.SelectedFrame)
 	rl.DrawRectangleLinesEx(rect, 2, rl.Blue)
 
 	box := components.Box(components.BoxProps{
@@ -45,18 +50,25 @@ func (i *Image) DrawHighlight() {
 func (i *Image) Rect(selectedFrame int) rl.Rectangle {
 	x := i.Position.X.KeyFramePosition(selectedFrame)
 	y := i.Position.Y.KeyFramePosition(selectedFrame)
-	return rl.NewRectangle(x, y, float32(i.Texture.Width), float32(i.Texture.Height))
+	width := i.Width.KeyFramePosition(selectedFrame)
+	height := i.Height.KeyFramePosition(selectedFrame)
+
+	return rl.NewRectangle(x, y, width, height)
 }
 func (i *Image) DrawComponent(mousePoint rl.Vector2, canvasRect rl.Rectangle) bool {
 	i.Interactable = app.NewInteractable(i.Id)
-	rect := i.Rect(app.Apk.SelectedFrame)
+	rect := i.Rect(app.Apk.Workplace.SelectedFrame)
 
 	// Only updates the event if the mouse is inside the canvas
+	// i.Interactable.State() != app.STATE_ACTIVE &&
 	if rl.CheckCollisionPointRec(mousePoint, canvasRect) {
 		i.Interactable.Event(mousePoint, rect)
 	}
 
-	rl.DrawTexture(i.Texture, rect.ToInt32().X, rect.ToInt32().Y, rl.White)
+	texture := app.Apk.Workplace.GetImagePath(i.Path)
+	rl.DrawTexture(texture, rect.ToInt32().X, rect.ToInt32().Y, rl.White)
+
+	// components.DrawImageCoverRounded(&texture, rect, 0)
 	return i.Interactable.State() == app.STATE_ACTIVE
 }
 func (i *Image) DrawControls(rect rl.Rectangle) {
@@ -67,7 +79,7 @@ func (i *Image) DrawControls(rect rl.Rectangle) {
 func (i *Image) DrawTimeline() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := layout.Timeline.Root(rect).
-			Add(components.TimelinePanelTitle(i.Name, i))
+			Add(components.TimelinePanelTitle(app.ICON_IMAGE, i.Name, i))
 
 		prefix := "timeline"
 		layout.Add(components.NewAnimatedVector2(i.Position, i, prefix).Timeline()...)

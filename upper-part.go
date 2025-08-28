@@ -16,7 +16,7 @@ func UpperPart() app.Component {
 				app.ChildSize{SizeType: app.SIZE_WEIGHT, Value: 1},
 				app.ChildSize{SizeType: app.SIZE_ABSOLUTE, Value: SIDE_PANEL_WIDTH}).
 			Height(rect.Height).
-			Add(Canvas()).
+			Add(LeftPart()).
 			Add(RightPart())
 		return layout.Draw, 0, 0
 	}

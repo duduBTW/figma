@@ -46,15 +46,15 @@ func RectangleSelectionActionHandler(container rl.Rectangle) {
 	if startPosRec != nil && rl.IsMouseButtonReleased(rl.MouseButtonLeft) {
 		rect := CalculateRectangle()
 		index := 0
-		for _, l := range app.Apk.Layers {
+		for _, l := range app.Apk.Workplace.Layers {
 			_, isRec := l.(*layer.Rectangle)
 			if isRec {
 				index++
 			}
 		}
 
-		newLayer := layer.NewRectangle(app.Apk.NewLayerId(), rect, index)
-		app.Apk.AppendLayer(&newLayer)
+		newLayer := layer.NewRectangle(app.Apk.Workplace.NewLayerId(), rect, index)
+		app.Apk.Workplace.AppendLayer(&newLayer)
 		startPosRec = nil
 		currentPosRec = nil
 		return

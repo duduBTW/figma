@@ -12,19 +12,21 @@ type Text struct {
 	Color       app.AnimatedColor
 	FontSize    app.AnimatedProp
 	TextContent string
+	Type        string
 }
 
 const defaultTextName = "Text"
 
 const (
-	font_SIZE_KEY = "fontSize"
+	fontSize_KEY  = "font-size"
+	fontColor_KEY = "font-color"
 )
 
 func NewText(id string, rect rl.Vector2) Text {
 	return Text{
-		Element:     app.NewElement(id, rect, defaultTextName),
-		Color:       app.NewAnimatedColor(255, 255, 255, 255),
-		FontSize:    app.NewAnimatedProp(20, font_SIZE_KEY),
+		Element:     app.NewElement(id, rect, defaultTextName, "text"),
+		Color:       app.NewAnimatedColor(255, 255, 255, 255, fontColor_KEY),
+		FontSize:    app.NewAnimatedProp(20, fontSize_KEY),
 		TextContent: "Hello world!",
 	}
 }
@@ -41,20 +43,20 @@ func (t *Text) GetElement() *app.Element {
 }
 
 func (t *Text) DrawHighlight() {
-	rect := t.Rect(app.Apk.SelectedFrame)
+	rect := t.Rect(app.Apk.Workplace.SelectedFrame)
 	rl.DrawRectangleLinesEx(rect, 2, rl.Blue)
 }
 
 func (t *Text) DrawComponent(mousePoint rl.Vector2, canvasRect rl.Rectangle) bool {
 	t.Interactable = app.NewInteractable(t.Element.Id)
-	rect := t.Rect(app.Apk.SelectedFrame)
+	rect := t.Rect(app.Apk.Workplace.SelectedFrame)
 
 	// Only updates the event if the mouse is inside the canvas
 	if rl.CheckCollisionPointRec(mousePoint, canvasRect) {
 		t.Interactable.Event(mousePoint, rect)
 	}
-	fontSize := t.FontSize.KeyFramePosition(app.Apk.SelectedFrame)
-	color := t.Color.Get(app.Apk.SelectedFrame)
+	fontSize := t.FontSize.KeyFramePosition(app.Apk.Workplace.SelectedFrame)
+	color := t.Color.Get(app.Apk.Workplace.SelectedFrame)
 	rl.DrawText(t.TextContent, rect.ToInt32().X, rect.ToInt32().Y, int32(fontSize), color)
 	return t.Interactable.State() == app.STATE_ACTIVE
 }
@@ -95,7 +97,7 @@ func (t *Text) FontSizeControls() app.Component {
 func (t *Text) DrawTimeline() app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		layout := layout.Timeline.Root(rect)
-		layout.Add(components.TimelinePanelTitle(t.Name, t))
+		layout.Add(components.TimelinePanelTitle(app.ICON_TYPE, t.Name, t))
 		prefix := "timeline"
 
 		layout.Add(components.NewAnimatedVector2(t.Position, t, prefix).Timeline()...)

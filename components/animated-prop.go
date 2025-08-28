@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/dudubtw/figma/app"
+	ds "github.com/dudubtw/figma/design-system"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -28,6 +29,7 @@ func (component *animatedPropComponent) Input() app.Component {
 			app.NewLayout().
 				PositionRect(rect).
 				Row().
+				Gap(ds.SPACING_1).
 				Width(rect.Width,
 					app.ChildSize{SizeType: app.SIZE_WEIGHT, Value: 1},
 					app.ChildSize{SizeType: app.SIZE_ABSOLUTE, Value: 24}).
@@ -44,7 +46,7 @@ func (component *animatedPropComponent) keyFrameButton() app.Component {
 		prefix := component.prefix
 		button := Button(layer.GetName()+animatedProp.Name+prefix, BUTTON_VARIANT_PRIMARY, rl.NewVector2(rect.X, rect.Y), []app.Component{})
 		if button.Clicked {
-			animatedProp.InsertKeyframe(float32(app.Apk.State.SelectedFrame), animatedProp.Base)
+			animatedProp.InsertKeyframe(float32(app.Apk.Workplace.SelectedFrame), animatedProp.Base)
 		}
 		return button.Draw, 0, 0
 	}
@@ -56,7 +58,7 @@ func (component *animatedPropComponent) inputEditableContent() app.Component {
 		tempValue := animatedProp.InputValue
 		layer := component.layer
 		prefix := component.prefix
-		updateValue := fmt.Sprint(int(animatedProp.KeyFramePosition(app.Apk.State.SelectedFrame)))
+		updateValue := fmt.Sprint(int(animatedProp.KeyFramePosition(app.Apk.Workplace.SelectedFrame)))
 		if tempValue == app.EMPTY {
 			tempValue = updateValue
 		}
@@ -109,7 +111,7 @@ func (component *animatedPropComponent) TimelineFrames() app.Component {
 			keyframes := component.prop.SortedKeyframes
 			if len(keyframes) > 0 {
 				for _, keyframe := range keyframes {
-					x := app.Apk.State.GetXTimelineFrame(rect, keyframe[0])
+					x := app.Apk.Workplace.GetXTimelineFrame(rect, keyframe[0])
 					keyframeRect := rl.NewRectangle(x, float32(y), 10, 10)
 					rl.DrawRectanglePro(
 						keyframeRect,        // A 10×20 rectangle

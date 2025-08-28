@@ -1,6 +1,7 @@
 package components
 
 import (
+	"github.com/dudubtw/figma/app"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -78,4 +79,47 @@ func DrawRectangleRoundedLinePixels(rec rl.Rectangle, radiusPixels Roundness, li
 
 	// Call the original raylib function with the calculated roundness
 	rl.DrawRectangleRoundedLinesEx(rec, roundness, 0, lineThick, color)
+}
+
+var renderTextureCache = map[[3]float32]rl.RenderTexture2D{}
+
+func DrawImageCoverRounded(tex *rl.Texture2D, dest rl.Rectangle, radius float32) {
+	key := [3]float32{float32(tex.ID), dest.Width, dest.Height}
+	rt, ok := renderTextureCache[key]
+	if !ok {
+		// for key, oldRt := range renderTextureCache {
+		// 	if key[0] != float32(tex.ID) {
+		// 		continue
+		// 	}
+
+		// 	rl.UnloadRenderTexture(oldRt)
+		// }
+
+		rl.UnloadRenderTexture(rt)
+		renderTextureCache[key] = rl.LoadRenderTexture(int32(dest.Width), int32(dest.Height))
+		rl.SetTextureFilter(renderTextureCache[key].Texture, rl.FilterTrilinear)
+	}
+
+	sh := app.Apk.RoundedImageShader
+	uTexSizeLoc := rl.GetShaderLocation(sh, "uTexSize")
+	uRadiusLoc := rl.GetShaderLocation(sh, "uRadius")
+
+	imgW := float32(tex.Width)
+	imgH := float32(tex.Height)
+	scale := max(dest.Width/imgW, dest.Height/imgH)
+	cropW := dest.Width / scale
+	cropH := dest.Height / scale
+	src := rl.NewRectangle((imgW-cropW)*0.5, (imgH-cropH)*0.5, cropW, cropH)
+
+	rl.BeginTextureMode(rt)
+	rl.ClearBackground(rl.Blank)
+	rl.DrawTexturePro(*tex, src, rl.NewRectangle(0, 0, float32(rt.Texture.Width), float32(rt.Texture.Height)), rl.NewVector2(0, 0), 0, rl.White)
+	rl.EndTextureMode()
+
+	rl.BeginShaderMode(sh)
+	rl.SetShaderValue(sh, uTexSizeLoc, []float32{float32(rt.Texture.Width), float32(rt.Texture.Height)}, rl.ShaderUniformVec2)
+	rl.SetShaderValue(sh, uRadiusLoc, []float32{radius}, rl.ShaderUniformFloat)
+	rtSrc := rl.NewRectangle(0, 0, float32(rt.Texture.Width), -float32(rt.Texture.Height))
+	rl.DrawTexturePro(rt.Texture, rtSrc, dest, rl.NewVector2(0, 0), 0, rl.White)
+	rl.EndShaderMode()
 }

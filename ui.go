@@ -1,6 +1,7 @@
 package main
 
 import (
+	ds "github.com/dudubtw/figma/design-system"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -8,8 +9,8 @@ const (
 	BOTTOM_PANEL_HEIGHT = 400
 	TOOL_DOCK_HEIGHT    = 48
 	SIDE_PANEL_WIDTH    = 400
-	PANEL_GAP           = 8
-	PANEL_ROUNDNESS     = 6
+	PANEL_GAP           = ds.SPACING_2
+	PANEL_ROUNDNESS     = ds.RADII
 )
 
 var IconTexture rl.Texture2D

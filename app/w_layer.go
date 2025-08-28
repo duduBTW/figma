@@ -21,13 +21,15 @@ type Element struct {
 	Position *AnimatedVector2
 
 	Interactable Interactable
+	Type         string
 }
 
-func NewElement(id string, rect rl.Vector2, name string) Element {
+func NewElement(id string, rect rl.Vector2, name, elementType string) Element {
 	return Element{
 		Id:       id,
 		Position: NewAnimatedVector2(id, rect.X, rect.Y),
 		Name:     name,
+		Type:     elementType,
 	}
 }
 

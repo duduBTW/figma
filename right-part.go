@@ -60,14 +60,14 @@ var toolButtonIcons = map[app.Tool]app.IconName{
 func ToolButton(tool app.Tool) app.Component {
 	return func(rect rl.Rectangle) (func(), float32, float32) {
 		buttonVariant := components.BUTTON_VARIANT_GHOST
-		if tool == app.Apk.SelectedTool {
+		if tool == app.Apk.Workplace.SelectedTool {
 			buttonVariant = components.BUTTON_VARIANT_PRIMARY
 		}
 
 		button := components.Button("tool-"+string(tool), buttonVariant, rl.NewVector2(rect.X, rect.Y), []app.Component{components.Icon(toolButtonIcons[tool])})
 
 		if button.Clicked {
-			app.Apk.SelectedTool = tool
+			app.Apk.Workplace.SelectedTool = tool
 		}
 
 		return button.Draw, button.Rect.Width, button.Rect.Height
@@ -79,11 +79,11 @@ func PropertiesPanel() app.Component {
 
 		return func() {
 			DrawRectangleRoundedPixels(rect, PANEL_ROUNDNESS, rl.NewColor(34, 34, 34, 255))
-			if app.Apk.SelectedLayer == nil {
+			if app.Apk.Workplace.SelectedLayer == nil {
 				return
 			}
 
-			app.Apk.SelectedLayer.DrawControls(rl.NewRectangle(rect.X+12, rect.Y+12, rect.Width-24, rect.Height-24))
+			app.Apk.Workplace.SelectedLayer.DrawControls(rl.NewRectangle(rect.X+12, rect.Y+12, rect.Width-24, rect.Height-24))
 		}, 0, 0
 	}
 }

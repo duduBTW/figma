@@ -1,0 +1,294 @@
+{
+  "Title": "Cool animation",
+  "Framerate": 24,
+  "Duration": "01:00",
+  "ResolutionWidth": 1920,
+  "ResolutionHeight": 1920,
+  "PreviewImagePath": "C:\\Users\\carlo\\Pictures\\5o37k.jpg",
+  "Layers": [
+    {
+      "Id": "1",
+      "Name": "Rectangle 1",
+      "Position": {
+        "Id": "1",
+        "X": {
+          "Name": "x",
+          "Base": 85,
+          "SortedKeyframes": [
+            [15, 85],
+            [86, 625]
+          ],
+          "KeyframesMap": { "15": 85, "86": 625 },
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Y": {
+          "Name": "y",
+          "Base": 117,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        }
+      },
+      "Interactable": {},
+      "Type": "rectangle",
+      "Width": {
+        "Name": "width",
+        "Base": 158,
+        "SortedKeyframes": [],
+        "KeyframesMap": {},
+        "KeyFrameCurveStart": {},
+        "KeyFrameCurveEnd": {},
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      },
+      "Height": {
+        "Name": "height",
+        "Base": 159,
+        "SortedKeyframes": [],
+        "KeyframesMap": {},
+        "KeyFrameCurveStart": {},
+        "KeyFrameCurveEnd": {},
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      },
+      "Color": {
+        "Red": {
+          "Name": "red",
+          "Base": 217,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Blue": {
+          "Name": "blue",
+          "Base": 217,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Green": {
+          "Name": "green",
+          "Base": 217,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Alpha": {
+          "Name": "alpha",
+          "Base": 255,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      }
+    },
+    {
+      "Id": "2",
+      "Name": "Rectangle 2",
+      "Position": {
+        "Id": "2",
+        "X": {
+          "Name": "x",
+          "Base": 32,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Y": {
+          "Name": "y",
+          "Base": 325,
+          "SortedKeyframes": [
+            [45, 325],
+            [139, 65]
+          ],
+          "KeyframesMap": { "139": 65, "45": 325 },
+          "KeyFrameCurveStart": { "45": { "X": 264.25, "Y": 0 } },
+          "KeyFrameCurveEnd": { "139": { "X": -298.05, "Y": 0 } },
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        }
+      },
+      "Interactable": {},
+      "Type": "rectangle",
+      "Width": {
+        "Name": "width",
+        "Base": 799,
+        "SortedKeyframes": [],
+        "KeyframesMap": {},
+        "KeyFrameCurveStart": {},
+        "KeyFrameCurveEnd": {},
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      },
+      "Height": {
+        "Name": "height",
+        "Base": 38,
+        "SortedKeyframes": [],
+        "KeyframesMap": {},
+        "KeyFrameCurveStart": {},
+        "KeyFrameCurveEnd": {},
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      },
+      "Color": {
+        "Red": {
+          "Name": "red",
+          "Base": 217,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Blue": {
+          "Name": "blue",
+          "Base": 217,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Green": {
+          "Name": "green",
+          "Base": 217,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Alpha": {
+          "Name": "alpha",
+          "Base": 255,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      }
+    },
+    {
+      "Id": "3",
+      "Name": "Text",
+      "Position": {
+        "Id": "3",
+        "X": {
+          "Name": "x",
+          "Base": 299,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Y": {
+          "Name": "y",
+          "Base": 235,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        }
+      },
+      "Interactable": {},
+      "Color": {
+        "Red": {
+          "Name": "red",
+          "Base": 255,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Blue": {
+          "Name": "blue",
+          "Base": 255,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Green": {
+          "Name": "green",
+          "Base": 255,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Alpha": {
+          "Name": "alpha",
+          "Base": 255,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      },
+      "FontSize": {
+        "Name": "fontSize",
+        "Base": 20,
+        "SortedKeyframes": [],
+        "KeyframesMap": {},
+        "KeyFrameCurveStart": {},
+        "KeyFrameCurveEnd": {},
+        "InputValue": "_$_$_$_$_empty__._$$__"
+      },
+      "TextContent": "Hello world!",
+      "Type": ""
+    },
+    {
+      "Id": "4",
+      "Name": "Image 1",
+      "Position": {
+        "Id": "4",
+        "X": {
+          "Name": "x",
+          "Base": 86,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        },
+        "Y": {
+          "Name": "y",
+          "Base": 202,
+          "SortedKeyframes": [],
+          "KeyframesMap": {},
+          "KeyFrameCurveStart": {},
+          "KeyFrameCurveEnd": {},
+          "InputValue": "_$_$_$_$_empty__._$$__"
+        }
+      },
+      "Interactable": {},
+      "Type": "image",
+      "Texture": {
+        "ID": 25,
+        "Width": 132,
+        "Height": 114,
+        "Mipmaps": 1,
+        "Format": 4
+      }
+    }
+  ]
+}

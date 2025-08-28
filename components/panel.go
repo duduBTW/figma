@@ -2,16 +2,12 @@ package components
 
 import (
 	"github.com/dudubtw/figma/app"
+	ds "github.com/dudubtw/figma/design-system"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func SidebarProperyLabel(text string) app.Component {
-	return func(rect rl.Rectangle) (func(), float32, float32) {
-		fontSize := 14
-		return func() {
-			rl.DrawText(text, rect.ToInt32().X, rect.ToInt32().Y+4, int32(fontSize), rl.White)
-		}, 0, float32(fontSize)
-	}
+	return Typography(text, ds.FONT_SIZE_LG, ds.FONT_WEIGHT_MEDIUM, ds.T2_COLOR_CONTENT_ACCENT)
 }
 
 func NewSidebarProperyLabel(rect rl.Rectangle) *app.Layout {

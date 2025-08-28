@@ -17,6 +17,7 @@ const (
 )
 
 func (interactable *Interactable) State() InteractableState {
+
 	switch interactable.id {
 	case Apk.ActiveId:
 		return STATE_ACTIVE
@@ -28,6 +29,7 @@ func (interactable *Interactable) State() InteractableState {
 }
 
 func (interactable *Interactable) Event(mousePoint rl.Vector2, rect rl.Rectangle) bool {
+
 	id := interactable.id
 	isActive := id == Apk.ActiveId
 	isInside := rl.CheckCollisionPointRec(mousePoint, rect)

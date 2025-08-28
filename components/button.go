@@ -2,6 +2,7 @@ package components
 
 import (
 	"github.com/dudubtw/figma/app"
+	ds "github.com/dudubtw/figma/design-system"
 	"github.com/dudubtw/figma/fmath"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -9,19 +10,25 @@ import (
 type ButtonVariant = string
 
 const (
-	BUTTON_VARIANT_PRIMARY = "primary"
-	BUTTON_VARIANT_GHOST   = "ghost"
+	BUTTON_VARIANT_PRIMARY  = "primary"
+	BUTTON_VARIANT_GHOST    = "ghost"
+	BUTTON_VARIANT_OUTLINED = "outlined"
 )
 
 type variantColor = map[app.InteractableState]rl.Color
 
 var variantColors = map[ButtonVariant]variantColor{
 	BUTTON_VARIANT_PRIMARY: {
-		app.STATE_INITIAL: rl.NewColor(12, 159, 233, 255),
-		app.STATE_HOT:     rl.NewColor(56, 183, 255, 255),
-		app.STATE_ACTIVE:  rl.NewColor(8, 117, 179, 255),
+		app.STATE_INITIAL: ds.T2_COLOR_PRIMARY,
+		app.STATE_HOT:     ds.T2_COLOR_PRIMARY_HOT,
+		app.STATE_ACTIVE:  ds.T2_COLOR_PRIMARY_ACTIVE,
 	},
 	BUTTON_VARIANT_GHOST: {
+		app.STATE_INITIAL: rl.Fade(rl.White, 0),
+		app.STATE_HOT:     rl.Fade(rl.White, 0.1),
+		app.STATE_ACTIVE:  rl.Fade(rl.White, 0.2),
+	},
+	BUTTON_VARIANT_OUTLINED: {
 		app.STATE_INITIAL: rl.Fade(rl.White, 0),
 		app.STATE_HOT:     rl.Fade(rl.White, 0.1),
 		app.STATE_ACTIVE:  rl.Fade(rl.White, 0.2),
@@ -54,7 +61,12 @@ func Button(id string, variant ButtonVariant, position rl.Vector2, children []ap
 
 	var containerBackgroundColor = variantColors[variant][interactable.State()]
 	buttonInstance.Draw = func() {
-		DrawRectangleRoundedPixels(containerRect, 4, containerBackgroundColor)
+		if variant == BUTTON_VARIANT_OUTLINED {
+			DrawRectangleRoundedLinePixels(containerRect, ds.RADII_SM, 1, ds.T2_BORDER)
+		}
+
+		DrawRectangleRoundedPixels(containerRect, ds.RADII_SM, containerBackgroundColor)
+
 		layout.Draw()
 	}
 
@@ -62,4 +74,8 @@ func Button(id string, variant ButtonVariant, position rl.Vector2, children []ap
 	buttonInstance.Rect = containerRect
 
 	return buttonInstance
+}
+
+func ButtonText(text string) app.Component {
+	return Typography(text, ds.FONT_SIZE_LG, ds.FONT_WEIGHT_MEDIUM, ds.T2_COLOR_CONTENT)
 }

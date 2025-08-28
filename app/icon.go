@@ -25,6 +25,11 @@ const (
 	ICON_PLAY          IconName = "play"
 	ICON_PAUSE         IconName = "pause"
 	ICON_CHART_SPLINE  IconName = "chart-spline"
+	ICON_PEN_TOOL      IconName = "pen-tool"
+	ICON_X             IconName = "x"
+	ICON_HOUSE         IconName = "house"
+	ICON_PLUS          IconName = "plus"
+	ICON_FILE          IconName = "file"
 
 	ICON_WIDTH  = 16
 	ICON_HEIGHT = 16

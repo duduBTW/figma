@@ -2,6 +2,7 @@ package layout
 
 import (
 	"github.com/dudubtw/figma/app"
+	ds "github.com/dudubtw/figma/design-system"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -20,7 +21,7 @@ func (timelineLayout) Root(rect rl.Rectangle) *app.Layout {
 		NewLayout().
 		PositionRect(rect).
 		Column().
-		Gap(12).
+		Gap(ds.SPACING_3).
 		Width(rect.Width)
 }
 
@@ -38,7 +39,7 @@ func (timelineLayout) Panel(rect rl.Rectangle) *app.Layout {
 	return app.
 		NewLayout().
 		PositionRect(rect).
-		Padding(app.NewPadding().Start(24)).
+		Padding(app.NewPadding().Start(26)).
 		Row().
 		Gap(16).
 		Width(rect.Width,

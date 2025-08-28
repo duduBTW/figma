@@ -21,7 +21,7 @@ func Selection(canvas rl.Rectangle) {
 		rl.SetMouseCursor(rl.MouseCursorDefault)
 	}
 
-	if !rl.CheckCollisionPointRec(rl.GetMousePosition(), canvas) || app.Apk.SelectedLayer == nil || app.Apk.SelectedLayer.State() != app.STATE_ACTIVE {
+	if !rl.CheckCollisionPointRec(rl.GetMousePosition(), canvas) || app.Apk.Workplace.SelectedLayer == nil || app.Apk.Workplace.SelectedLayer.State() != app.STATE_ACTIVE {
 		return
 	}
 
@@ -31,7 +31,7 @@ func Selection(canvas rl.Rectangle) {
 		return
 	}
 
-	element := app.Apk.SelectedLayer.GetElement()
+	element := app.Apk.Workplace.SelectedLayer.GetElement()
 	x := movingCurrentPos.X - movingSartPos.X
 	y := movingCurrentPos.Y - movingSartPos.Y
 
@@ -78,8 +78,8 @@ func SelectionActionHandler(start **rl.Vector2) *rl.Vector2 {
 
 	if rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
 		*start = &mousePos
-		if app.Apk.SelectedLayer != nil {
-			dragAnchor = app.Apk.SelectedLayer.Rect(app.Apk.SelectedFrame)
+		if app.Apk.Workplace.SelectedLayer != nil {
+			dragAnchor = app.Apk.Workplace.SelectedLayer.Rect(app.Apk.Workplace.SelectedFrame)
 		}
 		return *start
 	}

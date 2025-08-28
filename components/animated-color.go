@@ -90,7 +90,7 @@ func (c *animatedColorComponent) colorControlsInputs() app.Component {
 		tempValue := c.prop.InputValue
 
 		// Current values from keyframes
-		currentHex := app.ColorToHex(c.prop.Get(app.Apk.State.SelectedFrame))
+		currentHex := app.ColorToHex(c.prop.Get(app.Apk.Workplace.SelectedFrame))
 		if tempValue == app.EMPTY {
 			tempValue = currentHex
 		}
@@ -98,7 +98,7 @@ func (c *animatedColorComponent) colorControlsInputs() app.Component {
 		input := Input(InputProps{
 			X:          rect.X,
 			Y:          rect.Y,
-			Id:         c.layer.GetElement().Id + "_colorhex_" + c.prefix,
+			Id:         c.layer.GetElement().Id + c.prop.Name + c.prefix,
 			Width:      rect.Width,
 			Value:      tempValue,
 			MousePoint: rl.GetMousePosition(),

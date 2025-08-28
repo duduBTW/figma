@@ -116,3 +116,7 @@ func InverseLerp(a, b, value float32) float32 {
 func Lerp(a, b, t float32) float32 {
 	return a + (b-a)*t
 }
+
+func WidthTo16x9Height(Width float32) float32 {
+	return (Width*9 + 8) / 16
+}

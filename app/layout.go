@@ -82,6 +82,11 @@ type Size struct {
 	Height float32
 }
 
+type ComponentStackItem struct {
+	component Component
+	rect      rl.Rectangle
+}
+
 type Layout struct {
 	padding   Padding
 	direction Direction
@@ -90,7 +95,10 @@ type Layout struct {
 	height    ContrainedSize
 	gap       float32
 	index     int
-	drawStack []func()
+	// drawStack        []func()
+	componentStack      []ComponentStackItem
+	veticalAlignment    Alignment
+	horizontalAlignment Alignment
 
 	Size rl.Rectangle
 }
@@ -114,6 +122,8 @@ func NewContrainedSize(value float32, constrains ...ChildSize) ContrainedSize {
 			SizeType: SIZE_WEIGHT,
 			Value:    1,
 		}}
+	} else if constrains[0].Value == -1 {
+		constrinedSize.Contrains = []ChildSize{}
 	}
 
 	return constrinedSize
@@ -157,7 +167,10 @@ func (size *ContrainedSize) NextValue(gap float32) float32 {
 type Component func(rect rl.Rectangle) (func(), float32, float32)
 
 func NewLayout() *Layout {
-	return &Layout{}
+	return &Layout{
+		direction:        DIRECTION_ROW,
+		veticalAlignment: ALIGNMENT_START,
+	}
 }
 
 func (layout *Layout) paddingX() float32 {
@@ -192,6 +205,8 @@ func (layout *Layout) Column() *Layout {
 }
 func (layout *Layout) Position(position rl.Vector2) *Layout {
 	layout.position = position
+	layout.Size.X = position.X
+	layout.Size.Y = position.Y
 	return layout
 }
 func (layout *Layout) PositionRect(rect rl.Rectangle) *Layout {
@@ -204,7 +219,11 @@ func (layout *Layout) PositionRect(rect rl.Rectangle) *Layout {
 func (layout *Layout) Width(value float32, constrains ...ChildSize) *Layout {
 	layout.width = NewContrainedSize(value, constrains...)
 	layout.width.Compute(layout.gap, layout.paddingX())
-	layout.Size.Width = layout.width.Value
+	if len(constrains) > 0 && constrains[0].Value != -1 {
+		layout.Size.Width = value
+	} else {
+		layout.Size.Width = layout.paddingX()
+	}
 	return layout
 }
 func (layout *Layout) Height(value float32, constrains ...ChildSize) *Layout {
@@ -212,36 +231,69 @@ func (layout *Layout) Height(value float32, constrains ...ChildSize) *Layout {
 	layout.height.Compute(layout.gap, layout.paddingY())
 	// TODO
 	// IMPROVE CURRENT RECT AND INITIAL RECT LOGIC
-	layout.Size.Height = layout.height.Value
+	if len(constrains) > 0 && constrains[0].Value != -1 {
+		layout.Size.Height = value
+	} else {
+		layout.Size.Height = layout.paddingY()
+	}
+
 	return layout
 }
 
 func (layout *Layout) Add(components ...Component) *Layout {
+	Apk.CanInteract = false
 	for _, component := range components {
 		width := layout.width.CurrentValue(layout.gap)
 		height := layout.height.CurrentValue(layout.gap)
-		draw, width, height := component(rl.NewRectangle(layout.Size.X, layout.Size.Y, width, height))
-		layout.drawStack = append(layout.drawStack, draw)
+		rect := rl.NewRectangle(layout.Size.X, layout.Size.Y, width, height)
+		_, width, height = component(rect)
+		layout.componentStack = append(layout.componentStack, ComponentStackItem{component: component, rect: rect})
+		// layout.drawStack = append(layout.drawStack, draw)
 		layout.next(width, height)
 	}
+	Apk.CanInteract = true
 	return layout
 }
 
 func (layout *Layout) Draw() {
-	for _, draw := range layout.drawStack {
+	Apk.CanInteract = true
+
+	var offsetY float32 = 0
+	switch layout.veticalAlignment {
+	case ALIGNMENT_CENTER:
+		offsetY = (layout.height.Value - layout.Size.Height) / 2
+	case ALIGNMENT_END:
+		offsetY = layout.height.Value - layout.Size.Height
+	}
+
+	var offsetX float32 = 0
+	switch layout.horizontalAlignment {
+	case ALIGNMENT_CENTER:
+		offsetX = (layout.width.Value - layout.Size.Width) / 2
+	case ALIGNMENT_END:
+		offsetX = layout.width.Value - layout.Size.Width
+	}
+
+	for _, item := range layout.componentStack {
+		rect := item.rect
+		rect.X += offsetX
+		rect.Y += offsetY
+		draw, _, _ := item.component(rect)
 		draw()
 	}
+
+	Apk.CanInteract = false
 }
 
 func (layout *Layout) next(width, height float32) {
 	// TODO - FIX THIS, STOP USING ZERO
 	// Width
-	if width == 0 {
+	if len(layout.width.computed) > 1 {
 		width = layout.width.NextValue(layout.gap)
 	}
 
 	// Height
-	if height == 0 {
+	if len(layout.height.computed) > 1 {
 		height = layout.height.NextValue(layout.gap)
 	}
 
@@ -309,4 +361,14 @@ func ComputeChildren(childrenSize []ChildSize, value float32, gap float32) ([]fl
 	}
 
 	return computedSizes, nil
+}
+
+func (layout *Layout) VerticalAlignment(alignment Alignment) *Layout {
+	layout.veticalAlignment = alignment
+	return layout
+}
+
+func (layout *Layout) HorizontalAlignment(alignment Alignment) *Layout {
+	layout.horizontalAlignment = alignment
+	return layout
 }

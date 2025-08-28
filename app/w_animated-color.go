@@ -9,11 +9,13 @@ import (
 )
 
 type AnimatedColor struct {
-	Red        AnimatedProp
-	Blue       AnimatedProp
-	Green      AnimatedProp
-	Alpha      AnimatedProp
+	Name       string
 	InputValue string
+
+	Red   AnimatedProp
+	Blue  AnimatedProp
+	Green AnimatedProp
+	Alpha AnimatedProp
 }
 
 const (
@@ -23,13 +25,14 @@ const (
 	alpha_KEY = "alpha"
 )
 
-func NewAnimatedColor(red, blue, green, alpha float32) AnimatedColor {
+func NewAnimatedColor(red, blue, green, alpha float32, name string) AnimatedColor {
 	return AnimatedColor{
 		Red:        NewAnimatedProp(red, red_KEY),
 		Blue:       NewAnimatedProp(blue, blue_KEY),
 		Green:      NewAnimatedProp(green, green_KEY),
 		Alpha:      NewAnimatedProp(alpha, alpha_KEY),
 		InputValue: EMPTY,
+		Name:       name,
 	}
 }
 
@@ -42,7 +45,7 @@ func (a *AnimatedColor) Get(selectedFrame int) rl.Color {
 }
 
 func (a *AnimatedColor) Set(red, green, blue, alpha float32) {
-	selectedFrame := float32(Apk.State.SelectedFrame)
+	selectedFrame := float32(Apk.Workplace.SelectedFrame)
 	a.Red.InsertKeyframe(selectedFrame, red)
 	a.Green.InsertKeyframe(selectedFrame, green)
 	a.Blue.InsertKeyframe(selectedFrame, blue)
@@ -50,7 +53,7 @@ func (a *AnimatedColor) Set(red, green, blue, alpha float32) {
 }
 
 func (a *AnimatedColor) InsertKeyframe() {
-	frame := float32(Apk.State.SelectedFrame)
+	frame := float32(Apk.Workplace.SelectedFrame)
 	a.Red.InsertKeyframe(frame, a.Red.Base)
 	a.Green.InsertKeyframe(frame, a.Green.Base)
 	a.Blue.InsertKeyframe(frame, a.Blue.Base)
